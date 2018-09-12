@@ -32,4 +32,4 @@ std::ostream & operator<<( std::ostream & os, const options & options ) {
     return os;
 }
 
-}
+} // namespace options

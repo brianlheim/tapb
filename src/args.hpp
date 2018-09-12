@@ -28,4 +28,4 @@ private:
     const variables_map _vm;
 };
 
-}
+} // namespace options
