@@ -19,9 +19,9 @@ public:
     friend std::ostream & operator<<( std::ostream & os, const options & options );
 
 private:
-    const auto create_desc() const;
-    const auto create_pos_desc() const;
-    const auto parse_cmd_line( int argc, char ** argv );
+    auto create_desc() const;
+    auto create_pos_desc() const;
+    auto parse_cmd_line( int argc, char ** argv );
 
     const options_desc _desc;
     const pos_options_desc _pos_desc;

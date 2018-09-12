@@ -4,7 +4,7 @@
 
 namespace options {
 
-const auto options::create_desc() const {
+auto options::create_desc() const {
     options_desc desc;
     desc.add_options()( "h,help", "Print help and exit" )
         // ( "v,verbose", "Verbose messages" )
@@ -12,13 +12,13 @@ const auto options::create_desc() const {
     return desc;
 }
 
-const auto options::create_pos_desc() const {
+auto options::create_pos_desc() const {
     pos_options_desc pod;
     pod.add( "f,file", 1 );
     return pod;
 }
 
-options::options( int argc, char ** argv ):
+options::options( int /*argc*/, char ** /*argv*/ ):
     _desc{ create_desc() },
     _vm{} {
 }

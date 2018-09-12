@@ -20,3 +20,5 @@ add_executable(sndfile_basic
 )
 
 target_link_libraries(sndfile_basic Boost::program_options)
+
+target_compile_options(sndfile_basic PUBLIC -Wall -Wextra -Werror)
