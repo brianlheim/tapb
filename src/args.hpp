@@ -12,11 +12,11 @@ public:
     using pos_options_desc = boost::program_options::positional_options_description;
     using variables_map = boost::program_options::variables_map;
 
-    options( int argc, char** argv );
+    options( int argc, char ** argv );
 
     int count( const char * arg ) const;
 
-    friend std::ostream& operator<<( std::ostream& os, const options & options );
+    friend std::ostream & operator<<( std::ostream & os, const options & options );
 
 private:
     const auto create_desc() const;

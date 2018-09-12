@@ -2,8 +2,7 @@
 
 #include "args.hpp"
 
-int main( int argc, char ** argv )
-{
+int main( int argc, char ** argv ) {
     options::options opts{ argc, argv };
     if ( opts.count( "help" ) ) {
         std::cout << opts;
@@ -11,7 +10,6 @@ int main( int argc, char ** argv )
     }
 
     if ( opts.count( "file" ) ) {
-
     }
 
     return 0;

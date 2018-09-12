@@ -6,11 +6,9 @@ namespace options {
 
 const auto options::create_desc() const {
     options_desc desc;
-    desc.add_options()
-        ( "h,help", "Print help and exit" )
+    desc.add_options()( "h,help", "Print help and exit" )
         // ( "v,verbose", "Verbose messages" )
-        ( "f,file", "Target file" )
-        ;
+        ( "f,file", "Target file" );
     return desc;
 }
 
@@ -20,17 +18,16 @@ const auto options::create_pos_desc() const {
     return pod;
 }
 
-options::options( int argc, char** argv ):
+options::options( int argc, char ** argv ):
     _desc{ create_desc() },
-    _vm{}
-{}
+    _vm{} {
+}
 
 int options::count( const char * arg ) const {
     return _vm.count( arg );
 }
 
-std::ostream& operator<<( std::ostream& os, const options & options )
-{
+std::ostream & operator<<( std::ostream & os, const options & options ) {
     os << options._desc << std::endl;
     return os;
 }
