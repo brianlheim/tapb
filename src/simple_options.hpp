@@ -27,7 +27,7 @@ public:
         return *this;
     }
 
-    /// Add a positional argument with an unliminted number of slots.
+    /// Add a positional argument with an unlimited number of slots.
     options & unlimited_positional( const char * name ) {
         _posl.add( name, -1 );
         return *this;
@@ -56,4 +56,5 @@ private:
     desc_t _desc;
     posl_t _posl;
 };
+
 }
