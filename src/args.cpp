@@ -4,6 +4,12 @@
 
 namespace options {
 
+struct impl {
+    const options_desc _desc;
+    const pos_options_desc _pos_desc;
+    const variables_map _vm;
+};
+
 auto options::create_desc() const {
     options_desc desc;
     desc.add_options()( "h,help", "Print help and exit" )

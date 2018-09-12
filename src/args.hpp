@@ -4,6 +4,12 @@
 
 #include <iostream>
 
+namespace boost::program_options {
+class options_description;
+class positional_options_description;
+class variables_map;
+} // namespace boost::program_options
+
 namespace options {
 
 class options {
@@ -23,9 +29,8 @@ private:
     auto create_pos_desc() const;
     auto parse_cmd_line( int argc, char ** argv );
 
-    const options_desc _desc;
-    const pos_options_desc _pos_desc;
-    const variables_map _vm;
+    struct impl;
+    impl * _pimpl;
 };
 
 } // namespace options

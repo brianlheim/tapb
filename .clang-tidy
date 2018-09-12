@@ -1,5 +1,8 @@
 ---
-Checks:          'bugprone-*,cert-*,cppcoreguidelines-*,clang-analyzer-*,google-*,hicpp-*,llvm-*,misc-*,modernize-*,performance-*,portability-*,readability-*,zircon-*'
+Checks: >-
+  bugprone-*,cert-*,cppcoreguidelines-*,clang-analyzer-*,google-*,hicpp-*,llvm-*,misc-*,
+  modernize-*,performance-*,portability-*,readability-*,zircon-*,
+  -hicpp-named-parameter,-readability-identifier-naming,-google-runtime-int
 WarningsAsErrors: '*'
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
