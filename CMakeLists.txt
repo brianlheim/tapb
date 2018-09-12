@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(sndfile_basic)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_CLANG_TIDY clang-tidy)
 
 find_package(Boost 1.66.0 REQUIRED COMPONENTS program_options)
 
