@@ -7,16 +7,16 @@ namespace options {
 const auto options::create_desc() const {
     options_desc desc;
     desc.add_options()
-        ("h,help", "Print help and exit")
-        // ("v,verbose", "Verbose messages")
-        ("f,file", "Target file")
+        ( "h,help", "Print help and exit" )
+        // ( "v,verbose", "Verbose messages" )
+        ( "f,file", "Target file" )
         ;
     return desc;
 }
 
 const auto options::create_pos_desc() const {
     pos_options_desc pod;
-    pod.add("f,file", 1);
+    pod.add( "f,file", 1 );
     return pod;
 }
 
