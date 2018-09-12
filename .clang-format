@@ -1,10 +1,16 @@
 BasedOnStyle: WebKit
+AlignAfterOpenBracket: Align
 AllowShortFunctionsOnASingleLine: None
+AllowAllParametersOfDeclarationOnNextLine: false
+BinPackParameters: false
 BraceWrapping:
     SplitEmptyFunction: false
 BreakBeforeBraces: Custom
 BreakConstructorInitializers: AfterColon
+ColumnLimit: 100
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
 DerivePointerAlignment: false
+PenaltyReturnTypeOnItsOwnLine: 1000
 PointerAlignment: Middle
 SpaceBeforeCpp11BracedList: false
 SpaceBeforeCtorInitializerColon: false
