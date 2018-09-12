@@ -1,0 +1,11 @@
+BasedOnStyle: WebKit
+AllowShortFunctionsOnASingleLine: None
+BraceWrapping:
+    SplitEmptyFunction: false
+BreakBeforeBraces: Custom
+BreakConstructorInitializers: AfterColon
+DerivePointerAlignment: false
+PointerAlignment: Middle
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: false
+SpacesInParentheses: true
