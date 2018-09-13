@@ -47,6 +47,10 @@ public:
         store( result, *this );
     }
 
+    bool has( std::string const & field ) const {
+        return count( field ) != 0;
+    }
+
     friend std::ostream & operator<<( std::ostream & os, options & opts ) {
         os << opts._desc;
         return os;

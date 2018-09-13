@@ -17,7 +17,6 @@ endif()
 
 set(all_sources
     src/main.cpp
-    src/args.cpp
     )
 
 add_executable(sndfile_basic ${all_sources})

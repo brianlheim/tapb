@@ -1,15 +1,17 @@
 #include <iostream>
 
-#include "args.hpp"
+#include "simple_options.hpp"
 
 int main( int argc, char ** argv ) {
-    options::options opts{ argc, argv };
-    if ( opts.count( "help" ) != 0 ) {
+    simple_options::options opts{};
+    opts.option( "help,h", "Print description and exit" ).positional( "file" ).parse( argc, argv );
+
+    if ( opts.has( "help" ) ) {
         std::cout << opts;
         return 0;
     }
 
-    if ( opts.count( "file" ) != 0 ) {
+    if ( opts.has( "file" ) ) {
     }
 
     return 0;
