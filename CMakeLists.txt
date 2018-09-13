@@ -13,8 +13,6 @@ if(NOT SNDFILE)
     message(FATAL_ERROR "Could not find libsndfile")
 endif()
 
-# add_library()
-
 set(all_sources
     src/main.cpp
     )
