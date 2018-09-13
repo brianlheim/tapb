@@ -7,28 +7,37 @@
 
 namespace simple_options {
 
+using boost::program_options::value;
+
 class options : public boost::program_options::variables_map {
 public:
     using desc_t = boost::program_options::options_description;
     using posl_t = boost::program_options::positional_options_description;
     using semantic_t = boost::program_options::value_semantic;
-    using map_t = options;
 
     options() = default;
-    options( std::string const & name ): _desc{}, _posl{}, _name{ name } {
+    options( std::string const & name ): _name{ name } {
     }
 
     ~options() noexcept = default;
 
     /// Add a simple option with name and description.
-    options & option( const char * name, const char * description ) {
+    options & basic_option( const char * name, const char * description ) {
         _desc.add_options()( name, description );
         return *this;
     }
 
     /// See value<>() in boost::program_options for info on creating semantics
-    options & option( const char * name, const semantic_t * semantic, const char * description ) {
+    options & basic_option( const char * name,
+                            const char * description,
+                            const semantic_t * semantic ) {
         _desc.add_options()( name, semantic, description );
+        return *this;
+    }
+
+    template <typename T>
+    options & stored_option( const char * name, const char * description, T * store_in ) {
+        _desc.add_options()( name, value<T>( store_in ), description );
         return *this;
     }
 
@@ -54,6 +63,7 @@ public:
                              .positional( _posl )
                              .run();
         store( result, *this );
+        boost::program_options::notify( *this );
     }
 
     bool has( std::string const & field ) const {
@@ -91,7 +101,7 @@ private:
     desc_t _desc;
     desc_t _desc_pos; // Invisible positional arguments
     posl_t _posl;
-    unsigned _pos_count; // Num non-unlimited positional arguments
+    unsigned _pos_count = 0; // Num non-unlimited positional arguments
     const std::optional<std::string> _name;
 };
 

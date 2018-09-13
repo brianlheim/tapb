@@ -13,15 +13,28 @@ if(NOT SNDFILE)
     message(FATAL_ERROR "Could not find libsndfile")
 endif()
 
-set(all_sources
-    src/main.cpp
+set(basic_sources
+    src/basic/main.cpp
     )
 
-add_executable(sndfile_basic ${all_sources})
+set(sf2float_sources
+    src/sf2float/main.cpp
+    )
 
-target_link_libraries(sndfile_basic Boost::program_options)
+set(all_sources
+    ${basic_sources}
+    ${sf2float_sources}
+    )
 
-target_compile_options(sndfile_basic PUBLIC -Wall -Wextra -Werror -fcolor-diagnostics)
+add_executable(basic ${basic_sources})
+target_include_directories(basic PUBLIC src)
+target_link_libraries(basic Boost::program_options)
+target_compile_options(basic PUBLIC -Wall -Wextra -Werror -fcolor-diagnostics)
+
+add_executable(sf2float ${sf2float_sources})
+target_include_directories(sf2float PUBLIC src)
+target_link_libraries(sf2float Boost::program_options)
+target_compile_options(sf2float PUBLIC -Wall -Wextra -Werror -fcolor-diagnostics)
 
 add_custom_target(tidy ALL
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
