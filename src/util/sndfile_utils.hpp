@@ -17,4 +17,3 @@ std::ostream & operator<<( std::ostream & os, const SndfileHandle handle ) {
     os << "Sample rate: " << handle.samplerate() << std::endl;
     return os;
 }
-

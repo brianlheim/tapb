@@ -32,7 +32,9 @@ SndfileErr do_copy_impl( SndfileHandle & from, SndfileHandle & to, const size_t 
     return SndfileErr::Success;
 }
 
-SndfileErr do_copy( const std::string & from_path, const std::string & to_path, const size_t bufsize ) {
+SndfileErr do_copy( const std::string & from_path,
+                    const std::string & to_path,
+                    const size_t bufsize ) {
     SndfileHandle from{ from_path, SFM_READ };
     if ( from.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open read file: " << from_path << std::endl;
