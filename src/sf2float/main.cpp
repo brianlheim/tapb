@@ -3,23 +3,9 @@
 #include <vector>
 
 #include "util/simple_options.hpp"
+#include "util/sndfile_utils.hpp"
 
 #include "sndfile.hh"
-
-std::ostream & operator<<( std::ostream & os, const SndfileHandle handle ) {
-    os << "Format:      " << handle.format() << std::endl;
-    os << "Frames:      " << handle.frames() << std::endl;
-    os << "Channels:    " << handle.channels() << std::endl;
-    os << "Sample rate: " << handle.samplerate() << std::endl;
-    return os;
-}
-
-enum class SndfileErr {
-    Success = 0,
-    CouldNotOpen,
-    BadWrite,
-    BadRead,
-};
 
 SndfileErr do_copy_impl( SndfileHandle & from, SndfileHandle & to, const size_t bufsize ) {
     std::vector<float> floats( from.channels() * bufsize );
