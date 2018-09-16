@@ -61,7 +61,7 @@ int main( int argc, char ** argv ) {
         .basic_option( "bufsize,b", "Buffer size in frames",
                        simple_options::value<size_t>( &bufsize )->default_value( 1 ) )
         .positional( "input", "Input file" )
-        .positional( "output", "Input file" )
+        .positional( "output", "Output file" )
         .parse( argc, argv );
 
     if ( opts.has( "help" ) ) {
