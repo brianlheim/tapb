@@ -14,7 +14,14 @@ std::ostream & operator<<( std::ostream & os, const SndfileHandle handle ) {
     return os;
 }
 
-bool do_copy_impl( SndfileHandle & from, SndfileHandle & to, const size_t bufsize ) {
+enum class SndfileErr {
+    Success = 0,
+    CouldNotOpen,
+    BadWrite,
+    BadRead,
+};
+
+SndfileErr do_copy_impl( SndfileHandle & from, SndfileHandle & to, const size_t bufsize ) {
     std::vector<float> floats( from.channels() * bufsize );
 
     sf_count_t read = 0;
@@ -22,35 +29,34 @@ bool do_copy_impl( SndfileHandle & from, SndfileHandle & to, const size_t bufsiz
     while ( ( read = from.readf( floats.data(), bufsize ) ) ) {
         auto written = to.writef( floats.data(), read );
         if ( written < read ) {
-            std::cout << "Error while writing (" << written << " written): " << from.strError()
+            std::cout << "Error while writing (" << written << " written): " << to.strError()
                       << std::endl;
-            return false;
+            return SndfileErr::BadWrite;
         }
 
         total_written += written;
     }
 
     if ( total_written != from.frames() ) {
-        std::cout << "Could not read entire file: " << to.strError() << std::endl;
+        std::cout << "Could not read entire file: " << from.strError() << std::endl;
         std::cout << "Read " << from.frames() << " | Wrote " << to.frames() << std::endl;
-        return false;
+        return SndfileErr::BadRead;
     }
 
-    return true;
+    return SndfileErr::Success;
 }
 
-bool do_copy( std::string from_path, std::string to_path, const size_t bufsize ) {
+SndfileErr do_copy( const std::string & from_path, const std::string & to_path, const size_t bufsize ) {
     SndfileHandle from{ from_path, SFM_READ };
-    if ( !from ) {
+    if ( from.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open read file: " << from_path << std::endl;
-        return false;
+        return SndfileErr::CouldNotOpen;
     }
 
-    SndfileHandle to{ to_path, SFM_WRITE, SF_FORMAT_WAV | SF_FORMAT_FLOAT, from.channels(),
-                      from.samplerate() };
-    if ( !to ) {
+    SndfileHandle to{ to_path, SFM_WRITE, SF_FORMAT_FLOAT, from.channels(), from.samplerate() };
+    if ( to.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open write file: " << to_path << std::endl;
-        return false;
+        return SndfileErr::CouldNotOpen;
     }
 
 #ifndef NDEBUG
@@ -76,7 +82,8 @@ int main( int argc, char ** argv ) {
     }
 
     if ( opts.has( "input" ) && opts.has( "output" ) ) {
-        if ( do_copy( opts["input"].as<std::string>(), opts["output"].as<std::string>(), bufsize ) ) {
+        if ( do_copy( opts["input"].as<std::string>(), opts["output"].as<std::string>(), bufsize )
+             == SndfileErr::Success ) {
             return 0;
         } else {
             std::cout << "Copy failed." << std::endl;
