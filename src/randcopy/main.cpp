@@ -16,16 +16,21 @@ SndfileErr do_copy_impl( SndfileHandle & from,
                          const size_t randblock ) {
     std::vector<float> floats( from.channels() * bufsize );
     auto choose_new_outfile
-        = [&to1, &to2]() -> SndfileHandle & { return rand() & 0x1 ? to1 : to2; };
+        = [&to1, &to2]() -> SndfileHandle { return rand() & 0x1 ? to1 : to2; };
 
     sf_count_t read = 0;
     sf_count_t total_written = 0;
     sf_count_t to_write_in_block = randblock;
-    auto & outfile = choose_new_outfile();
+    auto outfile = choose_new_outfile();
 
     while ( ( read = from.readf( floats.data(), bufsize ) ) ) {
         sf_count_t written = 0;
         while ( written < read ) {
+            if ( to_write_in_block == 0 ) {
+                outfile = choose_new_outfile();
+                to_write_in_block = randblock;
+            }
+
             auto write_size = std::min( to_write_in_block, read - written );
             auto written_this_pass
                 = outfile.writef( floats.data() + written * from.channels(), write_size );
@@ -38,11 +43,6 @@ SndfileErr do_copy_impl( SndfileHandle & from,
 
             to_write_in_block -= write_size;
             written += written_this_pass;
-
-            if ( to_write_in_block == 0 ) {
-                outfile = choose_new_outfile();
-                to_write_in_block = randblock;
-            }
         }
 
         total_written += written;
