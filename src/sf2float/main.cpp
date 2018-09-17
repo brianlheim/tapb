@@ -41,7 +41,8 @@ SndfileErr do_copy( const std::string & from_path,
         return SndfileErr::CouldNotOpen;
     }
 
-    SndfileHandle to{ to_path, SFM_WRITE, SF_FORMAT_FLOAT, from.channels(), from.samplerate() };
+    SndfileHandle to{ to_path, SFM_WRITE, SF_FORMAT_WAV | SF_FORMAT_FLOAT, from.channels(),
+                      from.samplerate() };
     if ( to.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open write file: " << to_path << std::endl;
         return SndfileErr::CouldNotOpen;

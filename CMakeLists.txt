@@ -25,10 +25,15 @@ set(sf2float_sources
     src/sf2float/main.cpp
     )
 
+set(randcopy_sources
+    src/randcopy/main.cpp
+    )
+
 set(all_sources
     ${hello_sources}
     ${basic_sources}
     ${sf2float_sources}
+    ${randcopy_sources}
     )
 
 set(compiler_flags -Wall -Wextra -Werror)
@@ -49,6 +54,11 @@ add_executable(sf2float ${sf2float_sources})
 target_include_directories(sf2float PUBLIC src)
 target_link_libraries(sf2float Boost::program_options SNDFILE)
 target_compile_options(sf2float PUBLIC ${compiler_flags})
+
+add_executable(randcopy ${randcopy_sources})
+target_include_directories(randcopy PUBLIC src)
+target_link_libraries(randcopy Boost::program_options SNDFILE)
+target_compile_options(randcopy PUBLIC ${compiler_flags})
 
 add_custom_target(tidy
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
