@@ -56,7 +56,7 @@ SndfileErr do_copy( const std::string & from_path,
 }
 
 int main( int argc, char ** argv ) {
-    simple_options::options opts{ "my_program" };
+    simple_options::options opts{ "sf2float" };
     size_t bufsize;
     opts.basic_option( "help,h", "Print description and exit" )
         .basic_option( "bufsize,b", "Buffer size in frames",
