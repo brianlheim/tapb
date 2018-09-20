@@ -5,6 +5,11 @@
 
 #include "util/simple_options.hpp"
 
+void print_properties( const std::string & filename ) {
+    WrapSndfile::sndfile( filename, SFM_READ );
+    (void)filename;
+}
+
 int main( int argc, char ** argv ) {
     simple_options::options opts{ "sfprop" };
     opts.basic_option( "help,h", "Print description and exit" )
@@ -17,7 +22,7 @@ int main( int argc, char ** argv ) {
     }
 
     if ( opts.has( "input" ) ) {
-        print_properties( opts[ "input" ].as<std::string>() );
+        print_properties( opts["input"].as<std::string>() );
     } else {
         std::cout << opts;
         return 1;
