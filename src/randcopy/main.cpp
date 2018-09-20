@@ -15,8 +15,7 @@ SndfileErr do_copy_impl( SndfileHandle & from,
                          const size_t bufsize,
                          const size_t randblock ) {
     std::vector<float> floats( from.channels() * bufsize );
-    auto choose_new_outfile
-        = [&to1, &to2]() -> SndfileHandle { return rand() & 0x1 ? to1 : to2; };
+    auto choose_new_outfile = [&to1, &to2]() -> SndfileHandle { return rand() & 0x1 ? to1 : to2; };
 
     sf_count_t read = 0;
     sf_count_t total_written = 0;
@@ -115,7 +114,8 @@ int main( int argc, char ** argv ) {
 #ifndef NDEBUG
         std::cout << "Reading from " << opts["input"].as<std::string>() << " to {"
                   << opts["output1"].as<std::string>() << ", " << opts["output2"].as<std::string>()
-                  << "} bufsize=" << bufsize << "; randblock=" << randblock << "\n" << std::endl;
+                  << "} bufsize=" << bufsize << "; randblock=" << randblock << "\n"
+                  << std::endl;
 #endif
 
         auto result = do_copy( opts["input"].as<std::string>(), opts["output1"].as<std::string>(),

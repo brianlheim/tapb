@@ -19,6 +19,11 @@ public:
     options( std::string const & name ): _name{ name } {
     }
 
+    options( std::string const & name, std::string const & description ):
+        _name{ name },
+        _description{ description } {
+    }
+
     ~options() noexcept = default;
 
     /// Add a simple option with name and description.
@@ -77,7 +82,16 @@ public:
 
 private:
     void print_on( std::ostream & os ) const {
-        os << "Usage:\n    " << *_name;
+        const char * def_prog_name = "<program>";
+
+        if ( _description ) {
+            os << ( _name ? *_name : def_prog_name );
+            os << ": " << *_description;
+        }
+
+        os << "Usage:\n    ";
+        os << ( _name ? *_name : def_prog_name );
+
         for ( auto i = 0u; i < _pos_count; ++i ) {
             os << " <" << _posl.name_for_position( i ) << ">";
         }
@@ -103,6 +117,7 @@ private:
     posl_t _posl;
     unsigned _pos_count = 0; // Num non-unlimited positional arguments
     const std::optional<std::string> _name;
+    const std::optional<std::string> _description; // Program description
 };
 
 }
