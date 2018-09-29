@@ -12,7 +12,8 @@ using namespace std::string_literals;
 
 using SndfileValuePropertyFun = bool ( WrapSndfile::sndfile::* )( double & );
 
-std::string try_get_value_property( WrapSndfile::sndfile & sf, const SndfileValuePropertyFun func ) {
+std::string try_get_value_property( WrapSndfile::sndfile & sf,
+                                    const SndfileValuePropertyFun func ) {
     double val = 0.0;
     if ( ( sf.*func )( val ) ) {
         return std::to_string( val ) + " (" + std::to_string( ampToDb( val ) ) + " dB)";
@@ -40,15 +41,9 @@ void print_properties( const std::filesystem::path & path, WrapSndfile::sndfile 
          << try_get_value_property( sf, &WrapSndfile::sndfile::calcNormalizedPeak ) << endl;
 
     auto const fields = {
-        WrapSndfile::Field::TITLE,
-        WrapSndfile::Field::COPYRIGHT,
-        WrapSndfile::Field::SOFTWARE,
-        WrapSndfile::Field::ARTIST,
-        WrapSndfile::Field::COMMENT,
-        WrapSndfile::Field::DATE,
-        WrapSndfile::Field::ALBUM,
-        WrapSndfile::Field::LICENSE,
-        WrapSndfile::Field::TRACKNUMBER,
+        WrapSndfile::Field::TITLE,  WrapSndfile::Field::COPYRIGHT, WrapSndfile::Field::SOFTWARE,
+        WrapSndfile::Field::ARTIST, WrapSndfile::Field::COMMENT,   WrapSndfile::Field::DATE,
+        WrapSndfile::Field::ALBUM,  WrapSndfile::Field::LICENSE,   WrapSndfile::Field::TRACKNUMBER,
         WrapSndfile::Field::GENRE,
     };
 
