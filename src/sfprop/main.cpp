@@ -24,9 +24,10 @@ std::string try_get_value_property( WrapSndfile::sndfile & sf,
 
 void print_properties( const std::filesystem::path & path, WrapSndfile::sndfile & sf ) {
     using std::cout, std::endl;
+    const std::string divider( 60, '-' );
 
     cout << "Filename:        " << path.filename() << endl;
-    cout << "------------------------------------------------------" << endl;
+    cout << divider << endl;
     cout << "Format:          " << WrapSndfile::formatTypeName( sf.format().type ) << endl;
     cout << "Subtype:         " << WrapSndfile::formatSubtypeName( sf.format().subtype ) << endl;
     cout << "Endianness:      " << sf.format().endianness << endl;
@@ -39,6 +40,7 @@ void print_properties( const std::filesystem::path & path, WrapSndfile::sndfile 
          << endl;
     cout << "Calc Norm Peak:  "
          << try_get_value_property( sf, &WrapSndfile::sndfile::calcNormalizedPeak ) << endl;
+    cout << divider << '\n' << endl;
 
     auto const fields = {
         WrapSndfile::Field::TITLE,  WrapSndfile::Field::COPYRIGHT, WrapSndfile::Field::SOFTWARE,
