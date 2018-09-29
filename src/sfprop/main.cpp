@@ -1,13 +1,58 @@
-// take one file and randomly write its frames to two output files
+// print out properties of a sound file
+#include <filesystem>
 #include <iostream>
 
 #include "wrapsndfile.hpp"
 
 #include "util/simple_options.hpp"
 
-void print_properties( const std::string & filename ) {
-    WrapSndfile::sndfile( filename, SFM_READ );
-    (void)filename;
+void print_properties( const std::filesystem::path & path ) {
+    using std::cout, std::endl;
+
+    WrapSndfile::sndfile sf( path.c_str(), SFM_READ );
+
+    if ( sf ) {
+        cout << "Filename:        " << path.filename() << endl;
+        cout << "------------------------------------------------------" << endl;
+        cout << "Format:          " << WrapSndfile::formatTypeName( sf.format().type ) << endl;
+        cout << "Subtype:         " << WrapSndfile::formatSubtypeName( sf.format().subtype )
+             << endl;
+        cout << "Endianness:      " << sf.format().endianness << endl;
+        cout << "Channels:        " << sf.channels() << endl;
+        cout << "Frames:          " << sf.frames() << endl;
+        cout << "Sample Rate:     " << sf.samplerate() << endl;
+        cout << "In-file Peak:    ";
+        {
+            double peak = 3;
+            if ( sf.getPeak( peak ) ) {
+                cout << peak << endl;
+            } else {
+                cout << "not found" << endl;
+            }
+        }
+
+        cout << "Calculated Peak: ";
+        {
+            double peak;
+            if ( sf.calcPeak( peak ) ) {
+                cout << peak << endl;
+            } else {
+                cout << "not found" << endl;
+            }
+        }
+
+        cout << "Calc Norm Peak:  ";
+        {
+            double peak;
+            if ( sf.calcNormalizedPeak( peak ) ) {
+                cout << peak << endl;
+            } else {
+                cout << "not found" << endl;
+            }
+        }
+    } else {
+        cout << "Couldn't open :(" << endl;
+    }
 }
 
 int main( int argc, char ** argv ) {
