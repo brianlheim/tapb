@@ -7,9 +7,10 @@
 
 #include "sndfile.hh"
 
-SndfileErr do_copy_impl( SndfileHandle & from, SndfileHandle & to, const size_t bufsize ) {
-    std::vector<float> floats( from.channels() * bufsize );
-
+SndfileErr do_copy_impl( SndfileHandle & from,
+                         SndfileHandle & to,
+                         const size_t bufsize,
+                         std::vector<float> & floats ) {
     sf_count_t read = 0;
     sf_count_t total_written = 0;
     while ( ( read = from.readf( floats.data(), bufsize ) ) ) {
@@ -32,9 +33,28 @@ SndfileErr do_copy_impl( SndfileHandle & from, SndfileHandle & to, const size_t 
     return SndfileErr::Success;
 }
 
+SndfileErr do_copy_repeated( SndfileHandle & from,
+                             SndfileHandle & to,
+                             const size_t bufsize,
+                             const size_t repeats ) {
+    std::vector<float> floats( from.channels() * bufsize );
+
+    for ( auto i = 0ul; i < repeats; ++i ) {
+        auto const result = do_copy_impl( from, to, bufsize, floats );
+        if ( SndfileErr::Success != result ) {
+            return result;
+        }
+
+        from.seek( 0, 0 );
+    }
+
+    return SndfileErr::Success;
+}
+
 SndfileErr do_copy( const std::string & from_path,
                     const std::string & to_path,
-                    const size_t bufsize ) {
+                    const size_t bufsize,
+                    const size_t repeats ) {
     SndfileHandle from{ from_path, SFM_READ };
     if ( from.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open read file: " << from_path << std::endl;
@@ -52,15 +72,17 @@ SndfileErr do_copy( const std::string & from_path,
     std::cout << from << "\n" << to << "\n";
 #endif
 
-    return do_copy_impl( from, to, bufsize );
+    return do_copy_repeated( from, to, bufsize, repeats );
 }
 
 int main( int argc, char ** argv ) {
     simple_options::options opts{ "sf2float" };
-    size_t bufsize;
+    size_t bufsize, repeats;
     opts.basic_option( "help,h", "Print description and exit" )
         .basic_option( "bufsize,b", "Buffer size in frames",
-                       simple_options::value<size_t>( &bufsize )->default_value( 1 ) )
+                       simple_options::defaulted_value( &bufsize, 1 ) )
+        .basic_option( "repeats,r", "Number of times to repeat",
+                       simple_options::defaulted_value( &repeats, 1 ) )
         .positional( "input", "Input file" )
         .positional( "output", "Output file" )
         .parse( argc, argv );
@@ -71,8 +93,9 @@ int main( int argc, char ** argv ) {
     }
 
     if ( opts.has( "input" ) && opts.has( "output" ) ) {
-        if ( do_copy( opts["input"].as<std::string>(), opts["output"].as<std::string>(), bufsize )
-             == SndfileErr::Success ) {
+        auto && input = opts["input"].as<std::string>();
+        auto && output = opts["output"].as<std::string>();
+        if ( do_copy( input, output, bufsize, repeats ) == SndfileErr::Success ) {
             return 0;
         } else {
             std::cout << "Copy failed." << std::endl;

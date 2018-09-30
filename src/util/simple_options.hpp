@@ -9,6 +9,10 @@ namespace simple_options {
 
 using boost::program_options::value;
 
+template <typename T, typename U> decltype( auto ) defaulted_value( T * ptr, const U & def ) {
+    return value( ptr )->default_value( def );
+}
+
 class options : public boost::program_options::variables_map {
 public:
     using desc_t = boost::program_options::options_description;
