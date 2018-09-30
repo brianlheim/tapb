@@ -20,8 +20,8 @@ std::ostream & operator<<( std::ostream & os, const SndfileHandle handle ) {
     return os;
 }
 
-using Amplitude = double;
-using Loudness = double;
+using Amplitude = float;
+using Loudness = float;
 
 Loudness ampToDb( Amplitude amp ) {
     return 20.0 * std::log10( amp );
