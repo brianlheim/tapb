@@ -29,6 +29,9 @@ Loudness ampToDb( Amplitude amp ) {
     return 20.0 * std::log10( amp );
 }
 
+// Tries to open an input and output file, then forwards the resulting handles and other arguments
+// to the given function. `F`'s type should be a callable `Ret ()( const std::string&, const
+// std::string&, Ts... )`
 template <typename F, typename... Ts>
 SndfileErr fwd_copy( F && func,
                      const std::string & from_path,
