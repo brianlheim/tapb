@@ -37,6 +37,10 @@ set(sfgain_sources
     src/sfgain/main.cpp
     )
 
+set(sfnorm_sources
+    src/sfnorm/main.cpp
+    )
+
 set(all_sources
     ${hello_sources}
     ${basic_sources}
@@ -44,6 +48,7 @@ set(all_sources
     ${randcopy_sources}
     ${sfprop_sources}
     ${sfgain_sources}
+    ${sfnorm_sources}
     )
 
 set(compiler_flags -Wall -Wextra -Werror)
@@ -79,6 +84,11 @@ add_executable(sfgain ${sfgain_sources})
 target_include_directories(sfgain PUBLIC src)
 target_link_libraries(sfgain Boost::program_options SNDFILE)
 target_compile_options(sfgain PUBLIC ${compiler_flags})
+
+add_executable(sfnorm ${sfnorm_sources})
+target_include_directories(sfnorm PUBLIC src)
+target_link_libraries(sfnorm Boost::program_options SNDFILE)
+target_compile_options(sfnorm PUBLIC ${compiler_flags})
 
 add_custom_target(tidy
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
