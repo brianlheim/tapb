@@ -30,8 +30,8 @@ Loudness ampToDb( Amplitude amp ) {
 }
 
 // Tries to open an input and output file, then forwards the resulting handles and other arguments
-// to the given function. `F`'s type should be a callable `Ret ()( const std::string&, const
-// std::string&, Ts... )`
+// to the given function. `F`'s type should be a callable `Ret ()( SndfileHandle&,
+// SndfileHandle&, Ts... )`
 template <typename F, typename... Ts>
 SndfileErr fwd_copy( F && func,
                      const std::string & from_path,
@@ -53,5 +53,35 @@ SndfileErr fwd_copy( F && func,
     std::cout << from << "\n" << to << "\n";
 #endif
 
-    return func( from, to, std::forward<Ts &&...>( ts... ) );
+    return func( from, to, std::forward<Ts &&>( ts )... );
+}
+
+SndfileErr scale_copy( SndfileHandle & from,
+                       SndfileHandle & to,
+                       const Amplitude amp_scale,
+                       const size_t bufsize = 1024 ) {
+    std::vector<float> floats( from.channels() * bufsize );
+
+    sf_count_t read = 0;
+    sf_count_t total_written = 0;
+    while ( ( read = from.readf( floats.data(), bufsize ) ) ) {
+        std::transform( floats.begin(), floats.begin() + ( read * from.channels() ), floats.begin(),
+                        [&amp_scale]( auto x ) { return x * amp_scale; } );
+        auto written = to.writef( floats.data(), read );
+        if ( written < read ) {
+            std::cout << "Error while writing (" << written << " written): " << to.strError()
+                      << std::endl;
+            return SndfileErr::BadWrite;
+        }
+
+        total_written += written;
+    }
+
+    if ( total_written != from.frames() ) {
+        std::cout << "Could not read entire file: " << from.strError() << std::endl;
+        std::cout << "Read " << from.frames() << " | Wrote " << to.frames() << std::endl;
+        return SndfileErr::BadRead;
+    }
+
+    return SndfileErr::Success;
 }
