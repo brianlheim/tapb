@@ -12,6 +12,7 @@ enum class SndfileErr {
     CouldNotOpen,
     BadWrite,
     BadRead,
+    BadOperation,
 };
 
 std::ostream & operator<<( std::ostream & os, const SndfileHandle handle ) {
@@ -27,6 +28,10 @@ using Loudness = float;
 
 Loudness ampToDb( Amplitude amp ) {
     return 20.0 * std::log10( amp );
+}
+
+Amplitude dbToAmp( Loudness ld ) {
+    return std::pow( 10.0, ld / 20.0 );
 }
 
 // Tries to open an input and output file, then forwards the resulting handles and other arguments
