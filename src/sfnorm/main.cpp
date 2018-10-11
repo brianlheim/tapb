@@ -27,7 +27,7 @@ SndfileErr get_peak( SndfileHandle & handle, double & peak ) {
 }
 
 void print_peak( Amplitude peak ) {
-    std::cout << peak << std::endl;
+    std::cout << ampToDb( peak ) << std::endl;
 }
 
 void warn_no_scale( Amplitude peak ) {
@@ -39,7 +39,7 @@ int main( int argc, char ** argv ) {
     simple_options::options opts{ "sfnorm", "Use peak information in a file to normalize it." };
     double level;
     opts.basic_option( "help,h", "Print description and exit" )
-        .basic_option( "peak-only,p", "Print the peak information and exit" )
+        .basic_option( "peak-only,p", "Print the peak in dB and exit" )
         .basic_option( "level,l", "Normalization level in dB",
                        simple_options::defaulted_value( &level, 0.0 ) )
         .positional( "input", "Input file" )
