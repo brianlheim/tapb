@@ -90,7 +90,7 @@ private:
 
         if ( _description ) {
             os << ( _name ? *_name : def_prog_name );
-            os << ": " << *_description;
+            os << ": " << *_description << "\n\n";
         }
 
         os << "Usage:\n    ";
