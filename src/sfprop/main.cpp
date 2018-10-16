@@ -16,7 +16,7 @@ std::string try_get_value_property( WrapSndfile::sndfile & sf,
                                     const SndfileValuePropertyFun func ) {
     double val = 0.0;
     if ( ( sf.*func )( val ) ) {
-        return std::to_string( val ) + " (" + std::to_string( ampToDb( val ) ) + " dB)";
+        return std::to_string( val ) + " (" + std::to_string( amp_to_db( val ) ) + " dB)";
     } else {
         return "not found"s;
     }

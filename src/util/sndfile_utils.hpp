@@ -26,11 +26,11 @@ std::ostream & operator<<( std::ostream & os, const SndfileHandle handle ) {
 using Amplitude = float;
 using Loudness = float;
 
-Loudness ampToDb( Amplitude amp ) {
+Loudness amp_to_db( Amplitude amp ) {
     return 20.0 * std::log10( amp );
 }
 
-Amplitude dbToAmp( Loudness ld ) {
+Amplitude db_to_amp( Loudness ld ) {
     return std::pow( 10.0, ld / 20.0 );
 }
 

@@ -27,7 +27,7 @@ SndfileErr get_peak( SndfileHandle & handle, double & peak ) {
 }
 
 void print_peak( Amplitude peak ) {
-    std::cout << ampToDb( peak ) << std::endl;
+    std::cout << amp_to_db( peak ) << std::endl;
 }
 
 void warn_no_scale( Amplitude peak ) {
@@ -63,7 +63,7 @@ int main( int argc, char ** argv ) {
         if ( get_peak( in_handle, peak ) != SndfileErr::Success ) {
             return 1;
         }
-        auto level_amp = dbToAmp( level );
+        auto level_amp = db_to_amp( level );
         auto scale = level_amp / peak;
 
         if ( in_handle.seek( 0, SEEK_SET ) == -1 ) {
