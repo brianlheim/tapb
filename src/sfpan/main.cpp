@@ -69,7 +69,6 @@ SndfileErr fwd_pan_copy( const std::string & from_path,
     return pan_copy( from, to, position );
 }
 
-
 int main( int argc, char ** argv ) {
     simple_options::options opts{ "sfpan", "Pan a mono file at a fixed stereo position" };
     double position;
@@ -88,7 +87,7 @@ int main( int argc, char ** argv ) {
     if ( opts.has( "input" ) && opts.has( "output" ) ) {
         auto && input = opts["input"].as<std::string>();
         auto && output = opts["output"].as<std::string>();
-        if ( ! (position >= -1.0 && position <= 1.0) ) {
+        if ( !( position >= -1.0 && position <= 1.0 ) ) {
             std::cout << "Pan position must be -1 <= p <= 1." << std::endl;
             return 1;
         }
