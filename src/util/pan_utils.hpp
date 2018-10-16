@@ -1,22 +1,22 @@
 // panning utilities
 #pragma once
 
-#include <cassert>
-#include <cmath>
-#include <tuple>
+#include "util/math_utils.hpp"
 
-template <typename F>
-struct pan_pair {
+#include <cmath>
+
+template <typename F> struct pan_pair {
     F left;
     F right;
 };
 
 template <typename F> pan_pair<F> constant_power_pan( double position ) {
-    const double pi_div_4 = std::atan( 1.0 );
-    const double root2_div_2 = std::sqrt( 2.0 ) * 0.5;
-    double angle = position * pi_div_4;
-    double sin_angle = std::sin( angle );
-    double cos_angle = std::cos( angle );
+    using namespace audio_math;
 
-    return { root2_div_2 * ( cos_angle - sin_angle ), root2_div_2 * ( cos_angle + sin_angle ) };
+    const double angle = position * quarter_pi();
+    const double sin_angle = std::sin( angle );
+    const double cos_angle = std::cos( angle );
+
+    return { root_two_div_two() * ( cos_angle - sin_angle ),
+             root_two_div_two() * ( cos_angle + sin_angle ) };
 }
