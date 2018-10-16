@@ -52,6 +52,7 @@ int main( int argc, char ** argv ) {
     }
 
     if ( opts.has( "input" ) && ( opts.has( "output" ) || opts.has( "peak-only" ) ) ) {
+        // TODO refactor?
         auto && input = opts["input"].as<std::string>();
         SndfileHandle in_handle{ input, SFM_READ };
         if ( in_handle.error() != SF_ERR_NO_ERROR ) {
