@@ -41,6 +41,10 @@ set(sfnorm_sources
     src/sfnorm/main.cpp
     )
 
+set(sfpan_sources
+    src/sfpan/main.cpp
+    )
+
 set(all_sources
     ${hello_sources}
     ${basic_sources}
@@ -49,6 +53,7 @@ set(all_sources
     ${sfprop_sources}
     ${sfgain_sources}
     ${sfnorm_sources}
+    ${sfpan_sources}
     )
 
 set(compiler_flags -Wall -Wextra -Werror)
@@ -89,6 +94,11 @@ add_executable(sfnorm ${sfnorm_sources})
 target_include_directories(sfnorm PUBLIC src)
 target_link_libraries(sfnorm Boost::program_options SNDFILE)
 target_compile_options(sfnorm PUBLIC ${compiler_flags})
+
+add_executable(sfpan ${sfpan_sources})
+target_include_directories(sfpan PUBLIC src)
+target_link_libraries(sfpan Boost::program_options SNDFILE)
+target_compile_options(sfpan PUBLIC ${compiler_flags})
 
 add_custom_target(tidy
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
