@@ -5,13 +5,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Boost 1.66.0 REQUIRED COMPONENTS program_options)
 
-find_library(SNDFILE
-    libsndfile.a
-    PATHS ENV PATH
-    )
-if(NOT SNDFILE)
-    message(FATAL_ERROR "Could not find libsndfile")
-endif()
+find_library(vorbis libvorbis.a PATHS ENV PATH)
+find_library(vorbisenc libvorbisenc.a PATHS ENV PATH)
+find_library(vorbisfile libvorbisfile.a PATHS ENV PATH)
+find_library(ogg libogg.a PATHS ENV PATH)
+find_library(flac libflac.a PATHS ENV PATH)
+find_library(sndfile libsndfile.a PATHS ENV PATH)
 
 set(hello_sources
     src/hello/main.cpp
@@ -61,45 +60,31 @@ if(CMAKE_CXX_COMPILER_ID EQUAL "Clang" OR CMAKE_CXX_COMPILER_ID EQUAL "AppleClan
     string(APPEND compiler_flags -fcolor-diagnostics)
 endif()
 
-add_executable(hello ${hello_sources})
-target_include_directories(hello PUBLIC src)
-target_compile_options(hello PUBLIC ${compiler_flags})
+set(audio_libs ${sndfile} ${vorbis} ${flac} ${ogg} ${vorbisenc} ${vorbisfile})
 
-add_executable(basic ${basic_sources})
-target_include_directories(basic PUBLIC src)
-target_link_libraries(basic Boost::program_options)
-target_compile_options(basic PUBLIC ${compiler_flags})
+function(AddSimpleExe name sources)
+    add_executable(${name} ${sources})
+    target_include_directories(${name} PUBLIC src)
+    target_compile_options(${name} PUBLIC ${compiler_flags})
+    target_link_libraries(${name} Boost::program_options)
+endfunction()
 
-add_executable(sf2float ${sf2float_sources})
-target_include_directories(sf2float PUBLIC src)
-target_link_libraries(sf2float Boost::program_options SNDFILE)
-target_compile_options(sf2float PUBLIC ${compiler_flags})
+function(AddAudioExe name sources)
+    AddSimpleExe(${name} ${sources})
+    target_link_libraries(${name} ${audio_libs})
+endfunction()
 
-add_executable(randcopy ${randcopy_sources})
-target_include_directories(randcopy PUBLIC src)
-target_link_libraries(randcopy Boost::program_options SNDFILE)
-target_compile_options(randcopy PUBLIC ${compiler_flags})
+AddSimpleExe(hello ${hello_sources})
+AddSimpleExe(basic ${basic_sources})
 
-add_executable(sfprop ${sfprop_sources})
-target_include_directories(sfprop PUBLIC src)
-target_link_libraries(sfprop Boost::program_options SNDFILE)
-target_compile_options(sfprop PUBLIC ${compiler_flags})
+AddAudioExe(sf2float ${sf2float_sources})
+AddAudioExe(randcopy ${randcopy_sources})
+AddAudioExe(sfprop ${sfprop_sources})
+AddAudioExe(sfgain ${sfgain_sources})
+AddAudioExe(sfnorm ${sfnorm_sources})
+AddAudioExe(sfpan ${sfpan_sources})
 
-add_executable(sfgain ${sfgain_sources})
-target_include_directories(sfgain PUBLIC src)
-target_link_libraries(sfgain Boost::program_options SNDFILE)
-target_compile_options(sfgain PUBLIC ${compiler_flags})
-
-add_executable(sfnorm ${sfnorm_sources})
-target_include_directories(sfnorm PUBLIC src)
-target_link_libraries(sfnorm Boost::program_options SNDFILE)
-target_compile_options(sfnorm PUBLIC ${compiler_flags})
-
-add_executable(sfpan ${sfpan_sources})
-target_include_directories(sfpan PUBLIC src)
-target_link_libraries(sfpan Boost::program_options SNDFILE)
-target_compile_options(sfpan PUBLIC ${compiler_flags})
-
+# Currently broken
 add_custom_target(tidy
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMAND clang-tidy -quiet -p "${CMAKE_BINARY_DIR}" ${all_sources} -- ${CLANG_TIDY_EXTRA_FLAGS}
