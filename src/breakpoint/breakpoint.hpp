@@ -28,6 +28,8 @@ struct parse_error {
         unexpected_eof, // if EOF does not come after a newline
         misformatted_line,
         line_too_long,
+        time_not_increasing,
+        first_time_not_zero,
     };
 
     errc code;

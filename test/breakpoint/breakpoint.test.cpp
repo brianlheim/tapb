@@ -108,3 +108,17 @@ TEST_CASE( "failure line too long" ) {
     line2[0] = line2[2] = '1';
     require_error( line1 + '\n' + line2 + " \n", parse_error::line_too_long, 2 );
 }
+
+TEST_CASE( "failure times not increasing - duplicate time" ) {
+    require_error( "0 0\n1 1\n1 2\n", parse_error::time_not_increasing, 2 );
+}
+
+TEST_CASE( "failure times not increasing - decreasing time" ) {
+    require_error( "0 0\n1 1\n0 2\n", parse_error::time_not_increasing, 2 );
+}
+
+TEST_CASE( "failure first time not 0" ) {
+    require_error( "1 1\n2 2\n", parse_error::first_time_not_zero, 1 );
+    // this error should still take precedence
+    require_error( "1 1\n0 2\n", parse_error::first_time_not_zero, 1 );
+}

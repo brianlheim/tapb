@@ -7,12 +7,26 @@ namespace breakpoint {
 
 static constexpr unsigned maxlen = 256u;
 
-static parse_error validate_breakpoints( const std::vector<point>& points, unsigned last_line )
+// Performs following validations:
+// - should be at least two points
+// - times should be increasing
+// - first time should be 0.0
+//
+// Returns {error+line num} or {success+0}
+static parse_error validate_breakpoints( const std::vector<point>& points, const std::vector<unsigned>& line_nums, unsigned last_line )
 {
+    assert( points.size() == line_nums.size() );
+
     if ( points.size() < 2 )
-    {
         return { parse_error::at_least_two_points, last_line };
-    }
+
+    if ( points[0].time_secs != 0.0 )
+        return { parse_error::first_time_not_zero, line_nums[0] };
+
+    auto it = std::adjacent_find( begin( points ), end (points), [](point l, point r) { return l.time_secs >= r.time_secs; });
+    if ( it != end(points) )
+        return { parse_error::time_not_increasing, line_nums[ it - points.begin() ] };
+
 
     return { parse_error::success, 0 };
 }
@@ -25,6 +39,7 @@ std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & 
 
     unsigned line_count = 0;
     std::vector<point> result;
+    std::vector<unsigned> line_nums;
     while ( true ) {
         if ( is.peek() == std::istream::traits_type::eof() )
             break;
@@ -71,9 +86,10 @@ std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & 
             return parse_error{ parse_error::misformatted_line, line_count };
 
         result.push_back( this_point );
+        line_nums.push_back( line_count );
     }
 
-    auto&& validate_error = validate_breakpoints( result, line_count );
+    auto&& validate_error = validate_breakpoints( result, line_nums, line_count );
     using ReturnT = decltype( parse_breakpoints( is ) );
     return validate_error.code == parse_error::success ? ReturnT{ result } : validate_error;
 }
