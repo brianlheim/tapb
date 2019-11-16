@@ -12,41 +12,20 @@ find_library(ogg libogg.a PATHS ENV PATH)
 find_library(flac libflac.a PATHS ENV PATH)
 find_library(sndfile libsndfile.a PATHS ENV PATH)
 
-set(hello_sources
-    src/hello/main.cpp
-    )
-
-set(basic_sources
-    src/basic/main.cpp
-    )
-
-set(sf2float_sources
-    src/sf2float/main.cpp
-    )
-
-set(randcopy_sources
-    src/randcopy/main.cpp
-    )
-
-set(sfprop_sources
-    src/sfprop/main.cpp
-    )
-
-set(sfgain_sources
-    src/sfgain/main.cpp
-    )
-
-set(sfnorm_sources
-    src/sfnorm/main.cpp
-    )
-
-set(sfpan_sources
-    src/sfpan/main.cpp
-    )
+set(hello_sources src/hello/main.cpp)
+set(basic_sources src/basic/main.cpp)
+set(basic_bkpts_sources src/basic_bkpts/main.cpp)
+set(sf2float_sources src/sf2float/main.cpp)
+set(randcopy_sources src/randcopy/main.cpp)
+set(sfprop_sources src/sfprop/main.cpp)
+set(sfgain_sources src/sfgain/main.cpp)
+set(sfnorm_sources src/sfnorm/main.cpp)
+set(sfpan_sources src/sfpan/main.cpp)
 
 set(all_sources
     ${hello_sources}
     ${basic_sources}
+    ${basic_bkpts_sources}
     ${sf2float_sources}
     ${randcopy_sources}
     ${sfprop_sources}
@@ -62,20 +41,27 @@ endif()
 
 set(audio_libs ${sndfile} ${vorbis} ${flac} ${ogg} ${vorbisenc} ${vorbisfile})
 
+add_library(breakpoint STATIC src/breakpoint/breakpoint.cpp src/breakpoint/breakpoint.hpp)
+target_include_directories(breakpoint PUBLIC src)
+target_compile_options(breakpoint PUBLIC ${compiler_flags})
+
 function(AddSimpleExe name sources)
     add_executable(${name} ${sources})
     target_include_directories(${name} PUBLIC src)
     target_compile_options(${name} PUBLIC ${compiler_flags})
-    target_link_libraries(${name} Boost::program_options)
+    target_link_libraries(${name} PUBLIC Boost::program_options)
 endfunction()
 
 function(AddAudioExe name sources)
     AddSimpleExe(${name} ${sources})
-    target_link_libraries(${name} ${audio_libs})
+    target_link_libraries(${name} PUBLIC ${audio_libs})
 endfunction()
 
 AddSimpleExe(hello ${hello_sources})
 AddSimpleExe(basic ${basic_sources})
+
+AddSimpleExe(basic_bkpts ${basic_bkpts_sources})
+target_link_libraries(basic_bkpts PUBLIC breakpoint)
 
 AddAudioExe(sf2float ${sf2float_sources})
 AddAudioExe(randcopy ${randcopy_sources})

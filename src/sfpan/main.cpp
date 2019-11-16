@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+#include "breakpoint/breakpoint.hpp"
 #include "util/pan_utils.hpp"
 #include "util/simple_options.hpp"
 #include "util/sndfile_utils.hpp"
