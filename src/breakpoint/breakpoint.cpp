@@ -4,24 +4,9 @@
 
 namespace breakpoint {
 
-std::pair<std::vector<point>, bkpt_errc> parse_breakpoints( std::istream & is ) {
-    if ( !is )
-        return { {}, bkpt_errc::io_error };
-
-    std::vector<point> points;
-    while ( true ) {
-        point pt;
-        is >> pt.time_secs >> pt.value;
-        if ( ! is )
-            break;
-        points.push_back(pt);
-    }
-
-    if ( is.bad() )
-        return { {}, bkpt_errc::io_error };
-    else
-        return { points, bkpt_errc::success };
+std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & is ) {
+    (void)is;
+    return { parse_error{ parse_error::io_error, 0 } };
 }
 
 } // namespace breakpoint
-

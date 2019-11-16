@@ -1,6 +1,6 @@
+#include <fstream>
 #include <iostream>
 #include <string>
-#include <fstream>
 
 #include "breakpoint/breakpoint.hpp"
 #include "util/simple_options.hpp"
@@ -17,26 +17,24 @@ int main( int argc, char ** argv ) {
     }
 
     if ( opts.has( "file" ) ) {
-        std::ifstream infile( opts[ "file" ].as<std::string>() );
-        auto&& [points, errc] = breakpoint::parse_breakpoints( infile );
-        if ( errc != breakpoint::bkpt_errc::success )
-        {
-            std::cout << "Error while parsing breakpoints: " << std::underlying_type_t<breakpoint::bkpt_errc>(errc) << std::endl;
+        std::ifstream infile( opts["file"].as<std::string>() );
+        auto result = breakpoint::parse_breakpoints( infile );
+        auto * err = std::get_if<breakpoint::parse_error>( &result );
+        if ( err ) {
+            std::cout << "Error "
+                      << std::underlying_type_t<breakpoint::parse_error::errc>( err->code )
+                      << " on line: " << err->line << std::endl;
             return 1;
-        }
-        else
-        {
-            for ( auto&& pt : points )
-            {
+        } else {
+            auto & points = *std::get_if<std::vector<breakpoint::point>>( &result );
+            for ( auto && pt : points ) {
                 std::cout << "Point: " << pt.time_secs << " @ " << pt.value << std::endl;
             }
 
-            auto&& max_pt = breakpoint::max_point( begin(points), end( points ) );
+            auto && max_pt = breakpoint::max_point( begin( points ), end( points ) );
             std::cout << "\nMax point: " << max_pt.time_secs << " @ " << max_pt.value << std::endl;
         }
-    }
-    else
-    {
+    } else {
         std::cout << opts;
         return 1;
     }
