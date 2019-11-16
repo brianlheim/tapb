@@ -14,8 +14,8 @@ static void require_error( std::istringstream & is, parse_error::errc code, unsi
     auto * error = std::get_if<parse_error>( &result );
     INFO( "Input[" << is.str() << "]" );
     REQUIRE( error );
-    REQUIRE( error->line == line );
-    REQUIRE( error->code == code );
+    CHECK( error->line == line );
+    CHECK( error->code == code );
 }
 
 static void require_error( const std::string & input, parse_error::errc code, unsigned line ) {
@@ -29,7 +29,7 @@ static void require_success( const std::string & input, const std::vector<point>
     auto * points = std::get_if<std::vector<point>>( &result );
     INFO( "Input[" << input << "]" );
     REQUIRE( points );
-    REQUIRE_THAT( *points, Equals( exp_points ) );
+    CHECK_THAT( *points, Equals( exp_points ) );
 }
 
 TEST_CASE( "Cannot parse bad istream" ) {
