@@ -12,10 +12,21 @@ struct point {
     double value;
 };
 
+constexpr bool operator==( point l, point r ) {
+    return l.time_secs == r.time_secs && l.value == r.value;
+}
+
+constexpr bool operator!=( point l, point r ) {
+    return !( l == r );
+}
+
 struct parse_error {
     enum errc {
         success = 0,
         io_error = 1,
+        at_least_two_points,
+        unexpected_eof,
+        misformatted_line,
     };
 
     errc code;
@@ -25,8 +36,9 @@ struct parse_error {
 // File format:
 //
 // a series of lines, where each line is either (1) empty, or (2) a breakpoint.
-// (1) empty: empty line with no whitespace
-// (2) optional whitespace (spaces or tabs), fp time, whitespace, fp value, optional whitespace
+// whitespace = spaces or tabs
+// (1) empty: empty line with optional whitespace
+// (2) optional whitespace, fp time, whitespace, fp value, optional whitespace
 //
 // additional rules:
 // - must be at least 2 breakpoints
