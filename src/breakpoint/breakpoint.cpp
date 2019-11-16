@@ -32,6 +32,24 @@ static parse_error validate_breakpoints( const std::vector<point> & points,
     return { parse_error::success, 0 };
 }
 
+// Returns whether or not parsing was successful
+// If successful, column is set to past end of double, out is set to double value
+static bool try_parse_double( const char *& column, double & out ) {
+    char * str_end;
+    out = std::strtod( column, &str_end );
+    if ( str_end == column || out == HUGE_VAL )
+        return false;
+    column = str_end;
+    return true;
+}
+
+// Eat up spaces and tabs
+static inline const char * scan_to_next_token( const char * column ) {
+    while ( *column != '\0' && ( *column == ' ' || *column == '\t' ) )
+        column++;
+    return column;
+}
+
 std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & is ) {
     if ( !is )
         return { parse_error{ parse_error::io_error, 0 } };
@@ -42,8 +60,12 @@ std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & 
     std::vector<point> result;
     std::vector<unsigned> line_nums;
     while ( true ) {
-        if ( is.peek() == std::istream::traits_type::eof() )
-            break;
+        // Only successful exit path from this function
+        if ( is.peek() == std::istream::traits_type::eof() ) {
+            auto && validate_error = validate_breakpoints( result, line_nums, line_count );
+            using ReturnT = decltype( parse_breakpoints( is ) );
+            return validate_error.code == parse_error::success ? ReturnT{ result } : validate_error;
+        }
 
         ++line_count;
         char line[maxlen + 1];
@@ -55,46 +77,35 @@ std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & 
                                                       : parse_error::io_error,
                                 line_count };
 
-        // eat optional whitespace
-        const char * column = line;
-        while ( *column != '\0' && ( *column == ' ' || *column == '\t' ) )
-            column++;
-
+        // Process each line
+        auto * column = scan_to_next_token( line );
         if ( *column == '\0' )
             continue; // skip empty lines
 
+        // Time
         point this_point;
-        char * time_end;
-        this_point.time_secs = std::strtod( column, &time_end );
-        if ( time_end == column || this_point.time_secs == HUGE_VAL )
-            return parse_error{ parse_error::misformatted_line, line_count };
-        column = time_end;
-
-        while ( *column != '\0' && ( *column == ' ' || *column == '\t' ) )
-            column++;
-
-        if ( column == time_end )
+        if ( !try_parse_double( column, this_point.time_secs ) )
             return parse_error{ parse_error::misformatted_line, line_count };
 
-        char * value_end;
-        this_point.value = std::strtod( column, &value_end );
-        if ( value_end == column || this_point.value == HUGE_VAL )
-            return parse_error{ parse_error::misformatted_line, line_count };
-        column = value_end;
+        auto * next = scan_to_next_token( column );
 
-        while ( *column != '\0' && ( *column == ' ' || *column == '\t' ) )
-            column++;
+        if ( column == next )
+            return parse_error{ parse_error::misformatted_line, line_count };
+        column = next;
+
+        // Value
+        if ( !try_parse_double( column, this_point.value ) )
+            return parse_error{ parse_error::misformatted_line, line_count };
+
+        column = scan_to_next_token( column );
 
         if ( *column != '\0' )
             return parse_error{ parse_error::misformatted_line, line_count };
 
+        // Success
         result.push_back( this_point );
         line_nums.push_back( line_count );
     }
-
-    auto && validate_error = validate_breakpoints( result, line_nums, line_count );
-    using ReturnT = decltype( parse_breakpoints( is ) );
-    return validate_error.code == parse_error::success ? ReturnT{ result } : validate_error;
 }
 
 } // namespace breakpoint
