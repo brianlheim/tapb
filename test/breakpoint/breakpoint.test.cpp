@@ -92,3 +92,19 @@ TEST_CASE( "success empty lines" ) {
     require_success( "\n0 0\n\n1 1\n\n", { { 0, 0 }, { 1, 1 } } );
     require_success( " \n 0 0 \n  \n1 1 \n\n", { { 0, 0 }, { 1, 1 } } );
 }
+
+TEST_CASE( "success long line" ) {
+    std::string line1( 256, ' ' );
+    std::string line2 = line1;
+    line1[0] = line1[2] = '0';
+    line2[0] = line2[2] = '1';
+    require_success( line1 + '\n' + line2 + '\n', { { 0, 0 }, { 1, 1 } } );
+}
+
+TEST_CASE( "failure line too long" ) {
+    std::string line1( 256, ' ' );
+    std::string line2 = line1;
+    line1[0] = line1[2] = '0';
+    line2[0] = line2[2] = '1';
+    require_error( line1 + '\n' + line2 + " \n", parse_error::line_too_long, 2 );
+}

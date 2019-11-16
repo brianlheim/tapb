@@ -25,8 +25,9 @@ struct parse_error {
         success = 0,
         io_error = 1,
         at_least_two_points,
-        unexpected_eof,
+        unexpected_eof, // if EOF does not come after a newline
         misformatted_line,
+        line_too_long,
     };
 
     errc code;
@@ -44,6 +45,7 @@ struct parse_error {
 // - must be at least 2 breakpoints
 // - first breakpoint must be at time 0.0
 // - successive times must be increasing
+// - line can be a maximum of 256 characters long
 std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & is );
 
 template <typename FwdIt> constexpr point max_point( FwdIt begin, FwdIt end ) {
