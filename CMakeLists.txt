@@ -70,6 +70,13 @@ AddAudioExe(sfgain ${sfgain_sources})
 AddAudioExe(sfnorm ${sfnorm_sources})
 AddAudioExe(sfpan ${sfpan_sources})
 
+include(CTest)
+add_executable(test_breakpoint test/breakpoint/breakpoint.test.cpp)
+target_compile_options(test_breakpoint PUBLIC ${compiler_flags})
+target_include_directories(test_breakpoint PUBLIC src test)
+target_link_libraries(test_breakpoint PUBLIC breakpoint)
+add_test(NAME test_breakpoint COMMAND test_breakpoint)
+
 # Currently broken
 add_custom_target(tidy
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
