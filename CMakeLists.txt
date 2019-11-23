@@ -69,13 +69,19 @@ AddAudioExe(sfprop ${sfprop_sources})
 AddAudioExe(sfgain ${sfgain_sources})
 AddAudioExe(sfnorm ${sfnorm_sources})
 AddAudioExe(sfpan ${sfpan_sources})
+target_link_libraries(sfpan PUBLIC breakpoint)
 
 include(CTest)
-add_executable(test_breakpoint test/breakpoint/breakpoint.test.cpp)
-target_compile_options(test_breakpoint PUBLIC ${compiler_flags})
-target_include_directories(test_breakpoint PUBLIC src test)
-target_link_libraries(test_breakpoint PUBLIC breakpoint)
-add_test(NAME test_breakpoint COMMAND test_breakpoint)
+function(DefineTest name sources)
+    add_executable(${name} ${sources})
+    target_compile_options(${name} PUBLIC ${compiler_flags})
+    target_include_directories(${name} PUBLIC src test)
+    target_link_libraries(${name} PUBLIC breakpoint)
+    add_test(NAME ${name} COMMAND ${name})
+endfunction()
+
+DefineTest(test_breakpoint test/breakpoint/breakpoint.test.cpp)
+DefineTest(test_stereo_envelope_generator test/util/stereo_envelope_generator.test.cpp)
 
 # Currently broken
 add_custom_target(tidy
