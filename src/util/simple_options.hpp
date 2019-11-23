@@ -1,6 +1,6 @@
 #pragma once
 
-// boost::program_options's API blows
+// boost::program_options's API is not the most fun for simple use cases
 #include <boost/program_options.hpp>
 
 #include <optional>
