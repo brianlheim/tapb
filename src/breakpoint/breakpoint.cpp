@@ -1,10 +1,44 @@
 #include "breakpoint/breakpoint.hpp"
 
 #include <charconv>
+#include <fstream>
 #include <istream>
+#include <ostream>
 
 namespace breakpoint {
 
+const char * to_string( parse_error::errc code ) {
+    switch ( code ) {
+    case parse_error::success:
+        return "Success";
+    case parse_error::io_error:
+        return "I/O error";
+    case parse_error::at_least_two_points:
+        return "Need at least two points";
+    case parse_error::unexpected_eof:
+        return "Unexpected end of file";
+    case parse_error::misformatted_line:
+        return "Misformatted line";
+    case parse_error::line_too_long:
+        return "Line too long";
+    case parse_error::time_not_increasing:
+        return "Times must increase";
+    case parse_error::first_time_not_zero:
+        return "First time must be zero";
+    default:
+        return "Unknown error";
+    }
+}
+
+std::ostream & operator<<( std::ostream & os, const parse_error & error ) {
+    return os << error.code << " (line " << error.line << ')';
+}
+
+std::ostream & operator<<( std::ostream & os, parse_error::errc code ) {
+    return os << to_string( code );
+}
+
+// Max line length
 static constexpr unsigned maxlen = 256u;
 
 // Performs following validations:
@@ -106,6 +140,11 @@ std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & 
         result.push_back( this_point );
         line_nums.push_back( line_count );
     }
+}
+
+std::variant<std::vector<point>, parse_error> parse_breakpoints( const std::string & path ) {
+    std::ifstream ifs{ path };
+    return ifs.is_open() ? parse_breakpoints( ifs ) : parse_error{ parse_error::io_error, 0 };
 }
 
 } // namespace breakpoint

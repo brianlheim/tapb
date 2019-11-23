@@ -36,6 +36,11 @@ struct parse_error {
     unsigned line; // starting from 1; 0 indicates nothing could be parsed at all
 };
 
+const char * to_string( parse_error::errc code );
+
+std::ostream & operator<<( std::ostream & os, const parse_error & error );
+std::ostream & operator<<( std::ostream & os, parse_error::errc code );
+
 // File format:
 //
 // a series of lines, where each line is either (1) empty, or (2) a breakpoint.
@@ -49,6 +54,9 @@ struct parse_error {
 // - successive times must be increasing
 // - line can be a maximum of 256 characters long
 std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & is );
+
+// Helper function -- tries to open file at `path`, if it fails then return {io_error,0}
+std::variant<std::vector<point>, parse_error> parse_breakpoints( const std::string & path );
 
 template <typename FwdIt> constexpr point max_point( FwdIt begin, FwdIt end ) {
     return *std::max_element(
