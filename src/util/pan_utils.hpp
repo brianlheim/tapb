@@ -17,6 +17,6 @@ template <typename F> pan_pair<F> constant_power_pan( double position ) {
     const double sin_angle = std::sin( angle );
     const double cos_angle = std::cos( angle );
 
-    return { root_two_div_two() * ( cos_angle - sin_angle ),
-             root_two_div_two() * ( cos_angle + sin_angle ) };
+    return { F( root_two_div_two() * ( cos_angle - sin_angle ) ),
+             F( root_two_div_two() * ( cos_angle + sin_angle ) ) };
 }
