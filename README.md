@@ -5,6 +5,17 @@ Author: Brian Heim
 
 Created on: Tue Sep 11 20:34:17 CDT 2018
 
+This is a repo with four goals:
+- Do exercises from TAPB
+- Get used to new C++17 and C++20 features
+- Get experience using Catch2
+- Use good engineering practices:
+    - clang-tidy
+    - clang-format
+    - modern compiler and features
+    - TDD
+    - clean and modern CMake
+
 Requirements
 ------------
 
@@ -16,7 +27,18 @@ Requirements
 Building
 --------
 
-Build like any CMake project. No special configuration is needed.
+Build like any CMake project. On macOS 10.14, I am using Clang 8 installed from Homebrew and the
+toolchain-clang8.cmake toolchain file to build the project. So I do:
+
+    mkdir build
+    cd build
+    cmake .. -G"Unix Makefiles" -DBoost_NO_BOOST_CMAKE=ON -DCMAKE_TOOLCHAIN_FILE=../toolchain-clang8.cmake \
+        -DCMAKE_BUILD_TYPE=Debug
+    cmake --build . --target all -- -j8
+
+Adjust accordingly for your environment.
+
+Tests use Catch2.
 
 Executables
 -----------
