@@ -6,24 +6,43 @@
 #include "util/pan_utils.hpp"
 #include "util/simple_options.hpp"
 #include "util/sndfile_utils.hpp"
+#include "util/stereo_envelope_generator.hpp"
 
 #include "sndfile.hh"
 
+static void pan_multiply( std::vector<float> & out, const std::span<float> & in, sf_count_t read ) {
+    while ( read-- != 0 ) {
+        out[read * 2] = out[read] * in[read * 2];
+        out[read * 2 + 1] = out[read] * in[read * 2 + 1];
+    }
+}
+
+static bool check_pan_range( const std::vector<breakpoint::point> & points,
+                             double min,
+                             double max ) {
+    return std::all_of( begin( points ), end( points ),
+                        [min, max]( auto x ) { return x.value >= min && x.value <= max; } );
+}
+
 SndfileErr pan_copy( SndfileHandle & from,
                      SndfileHandle & to,
-                     const double position,
+                     const std::vector<breakpoint::point> & points,
                      const size_t bufsize = 1024 ) {
+    if ( !check_pan_range( points, -1.0, 1.0 ) ) {
+        std::cout << "Breakpoints are outside the -1 to +1 range" << std::endl;
+        return SndfileErr::BadOperation;
+    }
+
     // allocate enough for stereo
     std::vector<float> floats( bufsize * 2 );
 
     sf_count_t read = 0;
     sf_count_t total_written = 0;
-    auto pan = constant_power_pan<double>( position );
+    auto sample_rate = from.samplerate();
+    stereo_envelope_generator gen( points, sample_rate, bufsize );
+
     while ( ( read = from.readf( floats.data(), bufsize ) ) ) {
-        for ( auto i = read; i > 0; --i ) {
-            floats[i * 2 - 1] = floats[i - 1] * pan.right;
-            floats[i * 2 - 2] = floats[i - 1] * pan.left;
-        }
+        pan_multiply( floats, gen.next_frames( read ), read );
         auto written = to.writef( floats.data(), read );
         if ( written < read ) {
             std::cout << "Error while writing (" << written << " written): " << to.strError()
@@ -45,7 +64,7 @@ SndfileErr pan_copy( SndfileHandle & from,
 
 SndfileErr fwd_pan_copy( const std::string & from_path,
                          const std::string & to_path,
-                         double position ) {
+                         const std::string & breakpoints_path ) {
     SndfileHandle from{ from_path, SFM_READ };
     if ( from.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open read file: " << from_path << std::endl;
@@ -63,21 +82,25 @@ SndfileErr fwd_pan_copy( const std::string & from_path,
         return SndfileErr::CouldNotOpen;
     }
 
-#ifndef NDEBUG
-    std::cout << from << "\n" << to << "\n";
-#endif
-
-    return pan_copy( from, to, position );
+    auto breakpoints = breakpoint::parse_breakpoints( breakpoints_path );
+    if ( auto * perr = std::get_if<breakpoint::parse_error>( &breakpoints ) ) {
+        std::cout << "Error parsing breakpoint file '" << breakpoints_path << "': " << *perr
+                  << std::endl;
+        return SndfileErr::CouldNotOpen;
+    } else if ( auto * pvals = std::get_if<std::vector<breakpoint::point>>( &breakpoints ) ) {
+        return pan_copy( from, to, *pvals );
+    } else {
+        std::cout << "Unknown error while parsing breakpoints" << std::endl;
+        return SndfileErr::CouldNotOpen;
+    }
 }
 
 int main( int argc, char ** argv ) {
-    simple_options::options opts{ "sfpan", "Pan a mono file at a fixed stereo position" };
-    double position;
+    simple_options::options opts{ "sfpan", "Pan a mono file from a breakpoint file" };
     opts.basic_option( "help,h", "Print description and exit" )
-        .basic_option( "pos,p", "Pan position, -1 <= p <= 1",
-                       simple_options::defaulted_value( &position, 0.0 ) )
         .positional( "input", "Input file" )
         .positional( "output", "Output file" )
+        .positional( "breakpoints", "Breakpoint file" )
         .parse( argc, argv );
 
     if ( opts.has( "help" ) ) {
@@ -85,18 +108,15 @@ int main( int argc, char ** argv ) {
         return 0;
     }
 
-    if ( opts.has( "input" ) && opts.has( "output" ) ) {
+    if ( opts.has( "input" ) && opts.has( "output" ) && opts.has( "breakpoints" ) ) {
         auto && input = opts["input"].as<std::string>();
         auto && output = opts["output"].as<std::string>();
-        if ( !( position >= -1.0 && position <= 1.0 ) ) {
-            std::cout << "Pan position must be -1 <= p <= 1." << std::endl;
-            return 1;
-        }
+        auto && breakpoints = opts["breakpoints"].as<std::string>();
 
-        if ( fwd_pan_copy( input, output, position ) == SndfileErr::Success ) {
+        if ( fwd_pan_copy( input, output, breakpoints ) == SndfileErr::Success ) {
             return 0;
         } else {
-            std::cout << "Copy failed." << std::endl;
+            std::cout << "Operation failed." << std::endl;
             return 1;
         }
     } else {
