@@ -56,3 +56,5 @@ TODO
 ----
 
 - refactor code in main files
+- use std::filesystem::path instead of std::string
+- lift breakpoint validation to interface?
