@@ -51,3 +51,8 @@ Executables
 - `sfnorm`: normalizes an input file
 - `sfpan`: pans an input mono file given a breakpoint file
 - `sfprop`: print sound file properties
+
+TODO
+----
+
+- refactor code in main files
