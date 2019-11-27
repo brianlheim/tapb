@@ -58,3 +58,4 @@ TODO
 - refactor code in main files
 - use std::filesystem::path instead of std::string
 - lift breakpoint validation to interface?
+- add typedef in breakpoint for vec of points?
