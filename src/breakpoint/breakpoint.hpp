@@ -58,6 +58,14 @@ std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & 
 // Helper function -- tries to open file at `path`, if it fails then return {io_error,0}
 std::variant<std::vector<point>, parse_error> parse_breakpoints( const std::string & path );
 
+// Writes breakpoints to stream, without any validation.
+// Breakpoints are written one per line. Returns whether or not the operation succeeded.
+bool write_breakpoints( std::ostream & os, const std::vector<point> & points );
+
+// Convenience function -- tries to open file at `path` and write breakpoints, if it fails then
+// return false.
+bool write_breakpoints( const std::string & path, const std::vector<point> & points );
+
 template <typename FwdIt> constexpr point max_point( FwdIt begin, FwdIt end ) {
     return *std::max_element(
         begin, end, []( const point & l, const point & r ) { return l.value < r.value; } );

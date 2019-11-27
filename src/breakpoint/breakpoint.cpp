@@ -147,4 +147,13 @@ std::variant<std::vector<point>, parse_error> parse_breakpoints( const std::stri
     return ifs.is_open() ? parse_breakpoints( ifs ) : parse_error{ parse_error::io_error, 0 };
 }
 
+bool write_breakpoints( std::ostream & /*os*/, const std::vector<point> & /*points*/ ) {
+    return false;
+}
+
+bool write_breakpoints( const std::string & path, const std::vector<point> & points ) {
+    std::ofstream ofs{ path };
+    return ofs.is_open() && write_breakpoints( ofs, points );
+}
+
 } // namespace breakpoint
