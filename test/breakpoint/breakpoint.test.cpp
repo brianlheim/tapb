@@ -10,6 +10,10 @@
 using namespace breakpoint;
 using namespace Catch;
 
+// ----------------------------------------------------------------------------------------------------
+// parse_breakpoints
+// ----------------------------------------------------------------------------------------------------
+
 static void require_error( std::istringstream & is, parse_error::errc code, unsigned line ) {
     auto result = parse_breakpoints( is );
     auto * error = std::get_if<parse_error>( &result );
@@ -122,4 +126,44 @@ TEST_CASE( "failure first time not 0" ) {
     require_error( "1 1\n2 2\n", parse_error::first_time_not_zero, 1 );
     // this error should still take precedence
     require_error( "1 1\n0 2\n", parse_error::first_time_not_zero, 1 );
+}
+
+// ----------------------------------------------------------------------------------------------------
+// write_breakpoints
+// ----------------------------------------------------------------------------------------------------
+
+TEST_CASE( "should be able to write empty vec" ) {
+    std::ostringstream os;
+    auto ok = write_breakpoints( os, {} );
+    CHECK( ok );
+    CHECK( os.str() == "" );
+}
+
+TEST_CASE( "single breakpoint" ) {
+    std::ostringstream os;
+    auto ok = write_breakpoints( os, { { 1.0, 3.0 } } );
+    CHECK( ok );
+    CHECK( os.str() == "1 3\n" );
+}
+
+TEST_CASE( "two breakpoints" ) {
+    std::ostringstream os;
+    auto ok = write_breakpoints( os, { { 0.0, -1.0 }, { 1.0, 3.0 } } );
+    CHECK( ok );
+    CHECK( os.str() == "0 -1\n1 3\n" );
+}
+
+TEST_CASE( "real floats" ) {
+    std::ostringstream os;
+    auto ok = write_breakpoints( os, { { 0.5, -1.5 }, { 1.5, 3.5 } } );
+    CHECK( ok );
+    CHECK( os.str() == "0.5 -1.5\n1.5 3.5\n" );
+}
+
+TEST_CASE( "failure" ) {
+    std::ostringstream os;
+    os.setstate( std::ios_base::failbit );
+    auto ok = write_breakpoints( os, { { 0.5, -1.5 }, { 1.5, 3.5 } } );
+    CHECK( !ok );
+    CHECK( os.str() == "" );
 }
