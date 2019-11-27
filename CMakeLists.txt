@@ -21,6 +21,7 @@ set(sfprop_sources src/sfprop/main.cpp)
 set(sfgain_sources src/sfgain/main.cpp)
 set(sfnorm_sources src/sfnorm/main.cpp)
 set(sfpan_sources src/sfpan/main.cpp)
+set(envx_sources src/envx/main.cpp)
 
 set(all_sources
     ${hello_sources}
@@ -32,6 +33,7 @@ set(all_sources
     ${sfgain_sources}
     ${sfnorm_sources}
     ${sfpan_sources}
+    ${envx_sources}
     )
 
 set(compiler_flags -Wall -Wextra -Werror)
@@ -70,6 +72,8 @@ AddAudioExe(sfgain ${sfgain_sources})
 AddAudioExe(sfnorm ${sfnorm_sources})
 AddAudioExe(sfpan ${sfpan_sources})
 target_link_libraries(sfpan PUBLIC breakpoint)
+AddAudioExe(envx ${envx_sources})
+target_link_libraries(envx PUBLIC breakpoint)
 
 include(CTest)
 function(DefineTest name sources)
