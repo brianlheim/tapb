@@ -10,13 +10,14 @@
 
 #include "sndfile.hh"
 
-std::optional<std::vector<breakpoint::point>> get_breakpoints( SndfileHandle & from ) {
+std::optional<std::vector<breakpoint::point>> get_breakpoints( SndfileHandle & from, unsigned int win_ms ) {
     const int bufsize = 1024;
     std::vector<float> floats( bufsize * 2 );
 
     sf_count_t read = 0;
     sf_count_t total_read = 0;
-    // auto sample_rate = from.samplerate();
+    auto sample_rate = from.samplerate();
+    // TODO
 
     while ( ( read = from.readf( floats.data(), bufsize ) ) ) {
         total_read += read;
@@ -31,7 +32,7 @@ std::optional<std::vector<breakpoint::point>> get_breakpoints( SndfileHandle & f
     return std::nullopt;
 }
 
-SndfileErr extract_breakpoints( const std::string & from_path, const std::string & to_path ) {
+SndfileErr extract_breakpoints( const std::string & from_path, const std::string & to_path, unsigned int win_ms ) {
     SndfileHandle from{ from_path, SFM_READ };
     if ( from.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open read file: " << from_path << std::endl;
@@ -43,7 +44,7 @@ SndfileErr extract_breakpoints( const std::string & from_path, const std::string
         return SndfileErr::BadOperation;
     }
 
-    auto && breakpoints = get_breakpoints( from );
+    auto && breakpoints = get_breakpoints( from, win_ms );
     if ( !breakpoints ) {
         std::cout << "Error reading input file: " << from_path << std::endl;
         return SndfileErr::BadOperation;
@@ -58,10 +59,13 @@ SndfileErr extract_breakpoints( const std::string & from_path, const std::string
 }
 
 int main( int argc, char ** argv ) {
+    unsigned int win_ms;
     simple_options::options opts{ "envx", "Extract a breakpoint file from a mono input file" };
     opts.basic_option( "help,h", "Print description and exit" )
         .positional( "input", "Input file" )
         .positional( "output", "Output file" )
+        .basic_option( "winsize-millis,w", "Window size in milliseconds",
+                       simple_options::defaulted_value( &win_ms, 15 ) )
         .parse( argc, argv );
 
     if ( opts.has( "help" ) ) {
@@ -73,7 +77,7 @@ int main( int argc, char ** argv ) {
         auto && input = opts["input"].as<std::string>();
         auto && output = opts["output"].as<std::string>();
 
-        if ( extract_breakpoints( input, output ) == SndfileErr::Success ) {
+        if ( extract_breakpoints( input, output, win_ms ) == SndfileErr::Success ) {
             return 0;
         } else {
             std::cout << "Operation failed." << std::endl;
