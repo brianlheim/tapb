@@ -45,17 +45,20 @@ Executables
 
 - `basic`: test for boost options wrapper.
 - `basic_bkpts`: driver for breakpoints library.
+- `envx`: turn a mono sound file into a breakpoint file
 - `hello`: print out a hello message. toolchain tester.
 - `sf2float`: copy a file to an output file (wav file)
 - `sfgain`: copies an audio file, changing the gain
 - `sfnorm`: normalizes an input file
 - `sfpan`: pans an input mono file given a breakpoint file
 - `sfprop`: print sound file properties
+- `sfenv`: use a breakpoint file as an amplitude envelope for a given sound file
 
 TODO
 ----
 
-- refactor code in main files
+- refactor code in main files (!)
 - use std::filesystem::path instead of std::string
 - lift breakpoint validation to interface?
 - add typedef in breakpoint for vec of points?
+- factor envelope generators (CRTP'd?)
