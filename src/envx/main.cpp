@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -10,16 +11,20 @@
 
 #include "sndfile.hh"
 
-std::optional<std::vector<breakpoint::point>> get_breakpoints( SndfileHandle & from, unsigned int win_ms ) {
-    const int bufsize = 1024;
-    std::vector<float> floats( bufsize * 2 );
-
+std::optional<std::vector<breakpoint::point>> get_breakpoints( SndfileHandle & from,
+                                                               unsigned int win_ms ) {
     sf_count_t read = 0;
     sf_count_t total_read = 0;
-    auto sample_rate = from.samplerate();
-    // TODO
+    const auto sample_rate = from.samplerate(); // samp / s
+    const unsigned int samples_per_window = sample_rate * win_ms / 1000u;
+    std::vector<float> floats( samples_per_window );
+    std::vector<breakpoint::point> result;
 
-    while ( ( read = from.readf( floats.data(), bufsize ) ) ) {
+    while ( ( read = from.readf( floats.data(), floats.size() ) ) ) {
+        std::transform( begin( floats ), begin( floats ) + read, begin( floats ), &std::fabsf );
+        auto max = *std::max_element( begin( floats ), begin( floats ) + read );
+        auto time_secs = double( total_read ) / sample_rate;
+        result.push_back( { time_secs, max } );
         total_read += read;
     }
 
@@ -29,10 +34,12 @@ std::optional<std::vector<breakpoint::point>> get_breakpoints( SndfileHandle & f
         return std::nullopt;
     }
 
-    return std::nullopt;
+    return result;
 }
 
-SndfileErr extract_breakpoints( const std::string & from_path, const std::string & to_path, unsigned int win_ms ) {
+SndfileErr extract_breakpoints( const std::string & from_path,
+                                const std::string & to_path,
+                                unsigned int win_ms ) {
     SndfileHandle from{ from_path, SFM_READ };
     if ( from.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open read file: " << from_path << std::endl;
