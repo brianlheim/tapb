@@ -148,9 +148,9 @@ std::variant<std::vector<point>, parse_error> parse_breakpoints( const std::stri
 }
 
 bool write_breakpoints( std::ostream & os, const std::vector<point> & points ) {
-    for ( auto& point : points )
-        os << point.time_secs << ' ' << point.value << '\n';
-    return bool(os);
+    for ( auto & point : points )
+        os << point.time_secs << '\t' << point.value << '\n';
+    return bool( os );
 }
 
 bool write_breakpoints( const std::string & path, const std::vector<point> & points ) {

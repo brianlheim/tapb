@@ -143,21 +143,21 @@ TEST_CASE( "single breakpoint" ) {
     std::ostringstream os;
     auto ok = write_breakpoints( os, { { 1.0, 3.0 } } );
     CHECK( ok );
-    CHECK( os.str() == "1 3\n" );
+    CHECK( os.str() == "1\t3\n" );
 }
 
 TEST_CASE( "two breakpoints" ) {
     std::ostringstream os;
     auto ok = write_breakpoints( os, { { 0.0, -1.0 }, { 1.0, 3.0 } } );
     CHECK( ok );
-    CHECK( os.str() == "0 -1\n1 3\n" );
+    CHECK( os.str() == "0\t-1\n1\t3\n" );
 }
 
 TEST_CASE( "real floats" ) {
     std::ostringstream os;
     auto ok = write_breakpoints( os, { { 0.5, -1.5 }, { 1.5, 3.5 } } );
     CHECK( ok );
-    CHECK( os.str() == "0.5 -1.5\n1.5 3.5\n" );
+    CHECK( os.str() == "0.5\t-1.5\n1.5\t3.5\n" );
 }
 
 TEST_CASE( "failure" ) {
