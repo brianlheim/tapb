@@ -4,12 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "util/checked_invoke.hpp"
 #include "breakpoint/breakpoint.hpp"
-#include "util/pan_utils.hpp"
-#include "util/simple_options.hpp"
-#include "util/sndfile_utils.hpp"
-
-#include "sndfile.hh"
 
 std::optional<std::vector<breakpoint::point>> get_breakpoints( SndfileHandle & from,
                                                                unsigned int win_ms ) {
@@ -75,25 +71,7 @@ int main( int argc, char ** argv ) {
                        simple_options::defaulted_value( &win_ms, 15 ) )
         .parse( argc, argv );
 
-    if ( opts.has( "help" ) ) {
-        std::cout << opts;
-        return 0;
-    }
-
-    if ( opts.has( "input" ) && opts.has( "output" ) ) {
-        auto && input = opts["input"].as<std::string>();
-        auto && output = opts["output"].as<std::string>();
-
-        if ( extract_breakpoints( input, output, win_ms ) == SndfileErr::Success ) {
-            return 0;
-        } else {
-            std::cout << "Operation failed." << std::endl;
-            return 1;
-        }
-    } else {
-        std::cout << opts;
-        return 1;
-    }
-
-    return 0;
+    return checked_invoke( opts, [win_ms]( const std::string & input, const std::string & output ) {
+        return extract_breakpoints( input, output, win_ms );
+    } );
 }
