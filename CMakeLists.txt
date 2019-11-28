@@ -22,6 +22,7 @@ set(sfgain_sources src/sfgain/main.cpp)
 set(sfnorm_sources src/sfnorm/main.cpp)
 set(sfpan_sources src/sfpan/main.cpp)
 set(envx_sources src/envx/main.cpp)
+set(sfenv_sources src/sfenv/main.cpp)
 
 set(all_sources
     ${hello_sources}
@@ -34,6 +35,7 @@ set(all_sources
     ${sfnorm_sources}
     ${sfpan_sources}
     ${envx_sources}
+    ${sfenv_sources}
     )
 
 set(compiler_flags -Wall -Wextra -Werror)
@@ -51,29 +53,25 @@ function(AddSimpleExe name sources)
     add_executable(${name} ${sources})
     target_include_directories(${name} PUBLIC src)
     target_compile_options(${name} PUBLIC ${compiler_flags})
-    target_link_libraries(${name} PUBLIC Boost::program_options)
+    target_link_libraries(${name} PUBLIC Boost::program_options ${ARGN})
 endfunction()
 
 function(AddAudioExe name sources)
     AddSimpleExe(${name} ${sources})
-    target_link_libraries(${name} PUBLIC ${audio_libs})
+    target_link_libraries(${name} PUBLIC ${audio_libs} ${ARGN})
 endfunction()
 
 AddSimpleExe(hello ${hello_sources})
 AddSimpleExe(basic ${basic_sources})
-
-AddSimpleExe(basic_bkpts ${basic_bkpts_sources})
-target_link_libraries(basic_bkpts PUBLIC breakpoint)
-
+AddSimpleExe(basic_bkpts ${basic_bkpts_sources} breakpoint)
 AddAudioExe(sf2float ${sf2float_sources})
 AddAudioExe(randcopy ${randcopy_sources})
 AddAudioExe(sfprop ${sfprop_sources})
 AddAudioExe(sfgain ${sfgain_sources})
 AddAudioExe(sfnorm ${sfnorm_sources})
-AddAudioExe(sfpan ${sfpan_sources})
-target_link_libraries(sfpan PUBLIC breakpoint)
-AddAudioExe(envx ${envx_sources})
-target_link_libraries(envx PUBLIC breakpoint)
+AddAudioExe(sfpan ${sfpan_sources} breakpoint)
+AddAudioExe(envx ${envx_sources} breakpoint)
+AddAudioExe(sfenv ${sfenv_sources} breakpoint)
 
 include(CTest)
 function(DefineTest name sources)
