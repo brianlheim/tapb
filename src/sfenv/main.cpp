@@ -59,15 +59,9 @@ static bool fwd_pan_copy( const std::string & from_path,
                           const std::string & to_path,
                           const std::string & breakpoints_path,
                           bool do_normalize ) {
-    SndfileHandle from{ from_path, SFM_READ };
-    if ( from.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open read file: " << from_path << std::endl;
-        return false;
-    }
-
-    SndfileHandle to{ to_path, SFM_WRITE, from.format(), from.channels(), from.samplerate() };
-    if ( to.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open write file: " << to_path << std::endl;
+    auto from = make_input_handle(from_path);
+    auto to = make_output_handle(to_path, from);
+    if ( !from || !to ) {
         return false;
     }
 
