@@ -94,6 +94,7 @@ std::unique_ptr<SndfileHandle> make_input_handle( const std::string & path ) noe
     return handle;
 }
 
+// TODO make more flexible
 std::unique_ptr<SndfileHandle> make_output_handle(
     const std::string & path,
     const std::unique_ptr<SndfileHandle>& in_handle ) noexcept {
