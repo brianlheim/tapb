@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <span>
 #include <string>
 
 std::ostream & operator<<( std::ostream & os, const SndfileHandle handle ) {
@@ -81,17 +82,17 @@ std::unique_ptr<SndfileHandle> make_output_handle( const std::string & path,
     return out_handle;
 }
 
-bool scale_copy( SndfileHandle & from,
-                 SndfileHandle & to,
-                 const Amplitude amp_scale,
-                 const size_t bufsize = 1024 ) {
+template <class F>
+bool transform_copy( SndfileHandle & from,
+                     SndfileHandle & to,
+                     F && transform_func,
+                     const size_t bufsize = 1024 ) noexcept {
     std::vector<float> floats( from.channels() * bufsize );
 
     sf_count_t read = 0;
     sf_count_t total_written = 0;
     while ( ( read = from.readf( floats.data(), bufsize ) ) ) {
-        std::transform( floats.begin(), floats.begin() + ( read * from.channels() ), floats.begin(),
-                        [&amp_scale]( auto x ) { return x * amp_scale; } );
+        transform_func( std::span<float>{ floats.data(), read * from.channels() } );
         auto written = to.writef( floats.data(), read );
         if ( written < read ) {
             std::cout << "Error while writing (" << written << " written): " << to.strError()
@@ -109,4 +110,11 @@ bool scale_copy( SndfileHandle & from,
     }
 
     return true;
+}
+
+bool scale_copy( SndfileHandle & from, SndfileHandle & to, Amplitude scale ) noexcept {
+    return transform_copy( from, to, [scale]( std::span<float> data ) {
+        std::transform( data.begin(), data.end(), data.begin(),
+                        [scale]( auto x ) { return x * scale; } );
+    } );
 }
