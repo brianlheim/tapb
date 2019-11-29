@@ -82,3 +82,32 @@ bool scale_copy( SndfileHandle & from,
 
     return true;
 }
+
+// Factory methods
+std::unique_ptr<SndfileHandle> make_input_handle( const std::string & path ) noexcept {
+    auto handle = std::make_unique<SndfileHandle>( path, SFM_READ );
+    if ( handle->error() != SF_ERR_NO_ERROR ) {
+        std::cout << "Could not open read file: " << path << std::endl;
+        return {};
+    }
+
+    return handle;
+}
+
+std::unique_ptr<SndfileHandle> make_output_handle(
+    const std::string & path,
+    const std::unique_ptr<SndfileHandle>& in_handle ) noexcept {
+    if ( !in_handle ) {
+        return {};
+    }
+
+    auto out_handle
+        = std::make_unique<SndfileHandle>( path, SFM_WRITE, in_handle->format(),
+                                           in_handle->channels(), in_handle->samplerate() );
+    if ( out_handle->error() != SF_ERR_NO_ERROR ) {
+        std::cout << "Could not open write file: " << path << std::endl;
+        return {};
+    }
+
+    return out_handle;
+}
