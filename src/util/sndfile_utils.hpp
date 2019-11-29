@@ -7,14 +7,6 @@
 #include <iostream>
 #include <string>
 
-enum class SndfileErr {
-    Success = 0,
-    CouldNotOpen,
-    BadWrite,
-    BadRead,
-    BadOperation,
-};
-
 std::ostream & operator<<( std::ostream & os, const SndfileHandle handle ) {
     os << "Format:      " << handle.format() << std::endl;
     os << "Frames:      " << handle.frames() << std::endl;
@@ -38,20 +30,20 @@ Amplitude db_to_amp( Loudness ld ) {
 // to the given function. `F`'s type should be a callable `Ret ()( SndfileHandle&,
 // SndfileHandle&, Ts... )`
 template <typename F, typename... Ts>
-SndfileErr fwd_copy( F && func,
-                     const std::string & from_path,
-                     const std::string & to_path,
-                     Ts &&... ts ) {
+bool fwd_copy( F && func,
+               const std::string & from_path,
+               const std::string & to_path,
+               Ts &&... ts ) {
     SndfileHandle from{ from_path, SFM_READ };
     if ( from.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open read file: " << from_path << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 
     SndfileHandle to{ to_path, SFM_WRITE, from.format(), from.channels(), from.samplerate() };
     if ( to.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open write file: " << to_path << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 
 #ifndef NDEBUG
@@ -61,10 +53,10 @@ SndfileErr fwd_copy( F && func,
     return func( from, to, std::forward<Ts &&>( ts )... );
 }
 
-SndfileErr scale_copy( SndfileHandle & from,
-                       SndfileHandle & to,
-                       const Amplitude amp_scale,
-                       const size_t bufsize = 1024 ) {
+bool scale_copy( SndfileHandle & from,
+                 SndfileHandle & to,
+                 const Amplitude amp_scale,
+                 const size_t bufsize = 1024 ) {
     std::vector<float> floats( from.channels() * bufsize );
 
     sf_count_t read = 0;
@@ -76,7 +68,7 @@ SndfileErr scale_copy( SndfileHandle & from,
         if ( written < read ) {
             std::cout << "Error while writing (" << written << " written): " << to.strError()
                       << std::endl;
-            return SndfileErr::BadWrite;
+            return false;
         }
 
         total_written += written;
@@ -85,8 +77,8 @@ SndfileErr scale_copy( SndfileHandle & from,
     if ( total_written != from.frames() ) {
         std::cout << "Could not read entire file: " << from.strError() << std::endl;
         std::cout << "Read " << from.frames() << " | Wrote " << to.frames() << std::endl;
-        return SndfileErr::BadRead;
+        return false;
     }
 
-    return SndfileErr::Success;
+    return true;
 }

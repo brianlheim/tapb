@@ -3,15 +3,14 @@
 #include <string>
 
 #include "breakpoint/breakpoint.hpp"
-#include "util/simple_options.hpp"
-#include "util/sndfile_utils.hpp" // TODO should not need
+#include "util/checked_invoke.hpp"
 
-static SndfileErr process_breakpoints_file( const std::string & infile ) noexcept {
+static bool process_breakpoints_file( const std::string & infile ) noexcept {
     auto result = breakpoint::parse_breakpoints( infile );
     auto * err = std::get_if<breakpoint::parse_error>( &result );
     if ( err ) {
         std::cout << "Error " << to_string( err->code ) << " on line: " << err->line << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 
     auto & points = *std::get_if<std::vector<breakpoint::point>>( &result );
@@ -21,7 +20,7 @@ static SndfileErr process_breakpoints_file( const std::string & infile ) noexcep
 
     auto && max_pt = breakpoint::max_point( begin( points ), end( points ) );
     std::cout << "\nMax point: " << max_pt.time_secs << " @ " << max_pt.value << std::endl;
-    return SndfileErr::Success;
+    return true;
 }
 
 int main( int argc, char ** argv ) {
@@ -30,5 +29,5 @@ int main( int argc, char ** argv ) {
         .positional( "file", "Input file" )
         .parse( argc, argv );
 
-    checked_invoke( opts, std::array{"file"}, &process_breakpoints_file );
+    return checked_invoke( opts, std::array{ "file" }, &process_breakpoints_file );
 }

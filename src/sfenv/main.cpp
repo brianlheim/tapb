@@ -5,6 +5,7 @@
 #include "util/basic_envelope_generator.hpp"
 #include "util/checked_invoke.hpp"
 #include "util/pan_utils.hpp"
+#include "util/sndfile_utils.hpp"
 
 static void multichan_multiply( std::vector<float> & out,
                                 const std::span<float> & in,
@@ -15,10 +16,10 @@ static void multichan_multiply( std::vector<float> & out,
             out[i] *= amp;
 }
 
-static SndfileErr pan_copy( SndfileHandle & from,
-                            SndfileHandle & to,
-                            const std::vector<breakpoint::point> & points,
-                            const size_t bufsize = 1024 ) {
+static bool pan_copy( SndfileHandle & from,
+                      SndfileHandle & to,
+                      const std::vector<breakpoint::point> & points,
+                      const size_t bufsize = 1024 ) {
     // allocate enough for all channels
     std::vector<float> floats( bufsize * from.channels() );
 
@@ -33,7 +34,7 @@ static SndfileErr pan_copy( SndfileHandle & from,
         if ( written < read ) {
             std::cout << "Error while writing (" << written << " written): " << to.strError()
                       << std::endl;
-            return SndfileErr::BadWrite;
+            return false;
         }
 
         total_written += written;
@@ -42,10 +43,10 @@ static SndfileErr pan_copy( SndfileHandle & from,
     if ( total_written != from.frames() ) {
         std::cout << "Could not read entire file: " << from.strError() << std::endl;
         std::cout << "Read " << from.frames() << " | Wrote " << to.frames() << std::endl;
-        return SndfileErr::BadRead;
+        return false;
     }
 
-    return SndfileErr::Success;
+    return true;
 }
 
 static void normalize( std::vector<breakpoint::point> & points ) {
@@ -54,34 +55,34 @@ static void normalize( std::vector<breakpoint::point> & points ) {
         x.value /= max.value;
 }
 
-static SndfileErr fwd_pan_copy( const std::string & from_path,
-                                const std::string & to_path,
-                                const std::string & breakpoints_path,
-                                bool do_normalize ) {
+static bool fwd_pan_copy( const std::string & from_path,
+                          const std::string & to_path,
+                          const std::string & breakpoints_path,
+                          bool do_normalize ) {
     SndfileHandle from{ from_path, SFM_READ };
     if ( from.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open read file: " << from_path << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 
     SndfileHandle to{ to_path, SFM_WRITE, from.format(), from.channels(), from.samplerate() };
     if ( to.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open write file: " << to_path << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 
     auto breakpoints = breakpoint::parse_breakpoints( breakpoints_path );
     if ( auto * perr = std::get_if<breakpoint::parse_error>( &breakpoints ) ) {
         std::cout << "Error parsing breakpoint file '" << breakpoints_path << "': " << *perr
                   << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     } else if ( auto * pvals = std::get_if<std::vector<breakpoint::point>>( &breakpoints ) ) {
         if ( do_normalize )
             normalize( *pvals );
         return pan_copy( from, to, *pvals );
     } else {
         std::cout << "Unknown error while parsing breakpoints" << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 }
 

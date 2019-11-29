@@ -6,6 +6,7 @@
 #include "wrapsndfile.hpp"
 
 #include "util/checked_invoke.hpp"
+#include "util/sndfile_utils.hpp"
 
 using namespace std::string_literals;
 
@@ -21,11 +22,11 @@ std::string try_get_value_property( WrapSndfile::sndfile & sf,
     }
 }
 
-static SndfileErr print_properties( const std::string & path ) noexcept {
+static bool print_properties( const std::string & path ) noexcept {
     WrapSndfile::sndfile sf( path, SFM_READ );
     if ( !sf ) {
         std::cout << "Couldn't open file: " << path;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 
     using std::cout, std::endl;
@@ -60,7 +61,7 @@ static SndfileErr print_properties( const std::string & path ) noexcept {
         }
     }
 
-    return SndfileErr::Success;
+    return true;
 }
 
 int main( int argc, char ** argv ) {

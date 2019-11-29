@@ -4,6 +4,7 @@
 #include "breakpoint/breakpoint.hpp"
 #include "util/checked_invoke.hpp"
 #include "util/pan_utils.hpp"
+#include "util/sndfile_utils.hpp"
 #include "util/stereo_envelope_generator.hpp"
 
 static void pan_multiply( std::vector<float> & out, const std::span<float> & in, sf_count_t read ) {
@@ -20,13 +21,13 @@ static bool check_pan_range( const std::vector<breakpoint::point> & points,
                         [min, max]( auto x ) { return x.value >= min && x.value <= max; } );
 }
 
-SndfileErr pan_copy( SndfileHandle & from,
-                     SndfileHandle & to,
-                     const std::vector<breakpoint::point> & points,
-                     const size_t bufsize = 1024 ) {
+bool pan_copy( SndfileHandle & from,
+               SndfileHandle & to,
+               const std::vector<breakpoint::point> & points,
+               const size_t bufsize = 1024 ) {
     if ( !check_pan_range( points, -1.0, 1.0 ) ) {
         std::cout << "Breakpoints are outside the -1 to +1 range" << std::endl;
-        return SndfileErr::BadOperation;
+        return false;
     }
 
     // allocate enough for stereo
@@ -43,7 +44,7 @@ SndfileErr pan_copy( SndfileHandle & from,
         if ( written < read ) {
             std::cout << "Error while writing (" << written << " written): " << to.strError()
                       << std::endl;
-            return SndfileErr::BadWrite;
+            return false;
         }
 
         total_written += written;
@@ -52,42 +53,42 @@ SndfileErr pan_copy( SndfileHandle & from,
     if ( total_written != from.frames() ) {
         std::cout << "Could not read entire file: " << from.strError() << std::endl;
         std::cout << "Read " << from.frames() << " | Wrote " << to.frames() << std::endl;
-        return SndfileErr::BadRead;
+        return false;
     }
 
-    return SndfileErr::Success;
+    return true;
 }
 
-SndfileErr fwd_pan_copy( const std::string & from_path,
-                         const std::string & to_path,
-                         const std::string & breakpoints_path ) {
+bool fwd_pan_copy( const std::string & from_path,
+                   const std::string & to_path,
+                   const std::string & breakpoints_path ) {
     SndfileHandle from{ from_path, SFM_READ };
     if ( from.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open read file: " << from_path << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 
     if ( from.channels() != 1 ) {
         std::cout << "Input file must be mono: " << from_path << std::endl;
-        return SndfileErr::BadOperation;
+        return false;
     }
 
     SndfileHandle to{ to_path, SFM_WRITE, from.format(), 2, from.samplerate() };
     if ( to.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open write file: " << to_path << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 
     auto breakpoints = breakpoint::parse_breakpoints( breakpoints_path );
     if ( auto * perr = std::get_if<breakpoint::parse_error>( &breakpoints ) ) {
         std::cout << "Error parsing breakpoint file '" << breakpoints_path << "': " << *perr
                   << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     } else if ( auto * pvals = std::get_if<std::vector<breakpoint::point>>( &breakpoints ) ) {
         return pan_copy( from, to, *pvals );
     } else {
         std::cout << "Unknown error while parsing breakpoints" << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 }
 

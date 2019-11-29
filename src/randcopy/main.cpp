@@ -9,11 +9,11 @@
 
 #include "sndfile.hh"
 
-SndfileErr do_copy_impl( SndfileHandle & from,
-                         SndfileHandle & to1,
-                         SndfileHandle & to2,
-                         const size_t bufsize,
-                         const size_t randblock ) {
+bool do_copy_impl( SndfileHandle & from,
+                   SndfileHandle & to1,
+                   SndfileHandle & to2,
+                   const size_t bufsize,
+                   const size_t randblock ) {
     std::vector<float> floats( from.channels() * bufsize );
     auto choose_new_outfile = [&to1, &to2]() -> SndfileHandle { return rand() & 0x1 ? to1 : to2; };
 
@@ -37,7 +37,7 @@ SndfileErr do_copy_impl( SndfileHandle & from,
             if ( written_this_pass < write_size ) {
                 std::cout << "Error while writing (" << written_this_pass
                           << " written): " << outfile.strError() << std::endl;
-                return SndfileErr::BadWrite;
+                return false;
             }
 
             to_write_in_block -= write_size;
@@ -51,21 +51,21 @@ SndfileErr do_copy_impl( SndfileHandle & from,
         std::cout << "Could not read entire file: " << from.strError() << std::endl;
         std::cout << "Read " << from.frames() << " | Wrote " << to1.frames() << ", " << to2.frames()
                   << std::endl;
-        return SndfileErr::BadRead;
+        return false;
     }
 
-    return SndfileErr::Success;
+    return true;
 }
 
-SndfileErr do_copy( const std::string & from_path,
-                    const std::string & to_path1,
-                    const std::string & to_path2,
-                    const size_t bufsize,
-                    const size_t randblock ) {
+bool do_copy( const std::string & from_path,
+              const std::string & to_path1,
+              const std::string & to_path2,
+              const size_t bufsize,
+              const size_t randblock ) {
     SndfileHandle from{ from_path, SFM_READ };
     if ( from.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open read file: " << from_path << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 
     SndfileHandle to1{ to_path1, SFM_WRITE, SF_FORMAT_WAV | SF_FORMAT_FLOAT, from.channels(),
@@ -73,7 +73,7 @@ SndfileErr do_copy( const std::string & from_path,
     if ( to1.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open write file: " << to_path1 << " (" << to1.strError() << ")"
                   << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 
     SndfileHandle to2{ to_path2, SFM_WRITE, SF_FORMAT_WAV | SF_FORMAT_FLOAT, from.channels(),
@@ -81,7 +81,7 @@ SndfileErr do_copy( const std::string & from_path,
     if ( to2.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open write file: " << to_path2 << " (" << to2.strError() << ")"
                   << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 
 #ifndef NDEBUG
@@ -120,10 +120,9 @@ int main( int argc, char ** argv ) {
 
         auto result = do_copy( opts["input"].as<std::string>(), opts["output1"].as<std::string>(),
                                opts["output2"].as<std::string>(), bufsize, randblock );
-        if ( result == SndfileErr::Success ) {
-            return 0;
-        } else {
+        if ( !result ) {
             std::cout << "Copy failed." << std::endl;
+            return 2;
         }
     } else {
         std::cout << opts;

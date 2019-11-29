@@ -7,9 +7,9 @@
 
 #include "sndfile.hh"
 
-SndfileErr get_peak( SndfileHandle & handle, double & peak ) {
+bool get_peak( SndfileHandle & handle, double & peak ) {
     if ( handle.command( SFC_GET_SIGNAL_MAX, &peak, sizeof( peak ) ) ) {
-        return SndfileErr::Success;
+        return true;
     } else {
 
 #ifndef NDEBUG
@@ -19,9 +19,9 @@ SndfileErr get_peak( SndfileHandle & handle, double & peak ) {
         int result = handle.command( SFC_CALC_NORM_SIGNAL_MAX, &peak, sizeof( peak ) );
         if ( result != 0 ) {
             std::cout << "Could not calc peak (return code=" << result << ")" << std::endl;
-            return SndfileErr::BadOperation;
+            return false;
         } else {
-            return SndfileErr::Success;
+            return true;
         }
     }
 }
@@ -61,7 +61,7 @@ int main( int argc, char ** argv ) {
         }
 
         double peak;
-        if ( get_peak( in_handle, peak ) != SndfileErr::Success ) {
+        if ( get_peak( in_handle, peak ) != true ) {
             return 1;
         }
         auto level_amp = db_to_amp( level );
@@ -89,10 +89,9 @@ int main( int argc, char ** argv ) {
             return 1;
         }
 
-        if ( scale_copy( in_handle, out_handle, scale ) == SndfileErr::Success ) {
-            return 0;
-        } else {
+        if ( !scale_copy( in_handle, out_handle, scale ) ) {
             std::cout << "Copy failed." << std::endl;
+            return 2;
         }
     } else {
         std::cout << opts;

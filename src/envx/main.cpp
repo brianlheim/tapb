@@ -6,6 +6,7 @@
 
 #include "breakpoint/breakpoint.hpp"
 #include "util/checked_invoke.hpp"
+#include "util/sndfile_utils.hpp"
 
 std::optional<std::vector<breakpoint::point>> get_breakpoints( SndfileHandle & from,
                                                                unsigned int win_ms ) {
@@ -33,31 +34,31 @@ std::optional<std::vector<breakpoint::point>> get_breakpoints( SndfileHandle & f
     return result;
 }
 
-SndfileErr extract_breakpoints( const std::string & from_path,
-                                const std::string & to_path,
-                                unsigned int win_ms ) {
+bool extract_breakpoints( const std::string & from_path,
+                          const std::string & to_path,
+                          unsigned int win_ms ) {
     SndfileHandle from{ from_path, SFM_READ };
     if ( from.error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open read file: " << from_path << std::endl;
-        return SndfileErr::CouldNotOpen;
+        return false;
     }
 
     if ( from.channels() != 1 ) {
         std::cout << "Input file must be mono: " << from_path << std::endl;
-        return SndfileErr::BadOperation;
+        return false;
     }
 
     auto && breakpoints = get_breakpoints( from, win_ms );
     if ( !breakpoints ) {
         std::cout << "Error reading input file: " << from_path << std::endl;
-        return SndfileErr::BadOperation;
+        return false;
     }
 
     if ( breakpoint::write_breakpoints( to_path, *breakpoints ) ) {
-        return SndfileErr::Success;
+        return true;
     } else {
         std::cout << "Error writing breakpoints: " << to_path << std::endl;
-        return SndfileErr::BadOperation;
+        return false;
     }
 }
 

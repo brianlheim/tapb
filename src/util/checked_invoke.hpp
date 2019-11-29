@@ -1,13 +1,12 @@
 #pragma once
 
 #include "util/simple_options.hpp"
-#include "util/sndfile_utils.hpp"
 
 #include <array>
 #include <iostream>
 #include <tuple>
 
-// Expected signature of lambda: SndfileErr(std::string x N)
+// Expected signature of lambda: bool(std::string x N)
 template <typename F, size_t N>
 [[nodiscard]] static int checked_invoke( simple_options::options & opts,
                                          const std::array<const char *, N> & arg_names,
@@ -24,7 +23,7 @@ template <typename F, size_t N>
         for ( size_t i = 0; i < N; ++i ) {
             args[i] = opts[arg_names[i]].template as<std::string>();
         }
-        if ( apply( std::forward<F>( lambda ), args ) == SndfileErr::Success ) {
+        if ( apply( std::forward<F>( lambda ), args ) ) {
             return 0;
         } else {
             std::cout << "Operation failed." << std::endl;

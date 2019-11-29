@@ -1,4 +1,5 @@
 #include "util/checked_invoke.hpp"
+#include "util/sndfile_utils.hpp"
 
 #include <functional>
 
