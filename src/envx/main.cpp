@@ -37,18 +37,8 @@ std::optional<std::vector<breakpoint::point>> get_breakpoints( SndfileHandle & f
 bool extract_breakpoints( const std::string & from_path,
                           const std::string & to_path,
                           unsigned int win_ms ) {
-    SndfileHandle from{ from_path, SFM_READ };
-    if ( from.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open read file: " << from_path << std::endl;
-        return false;
-    }
-
-    if ( from.channels() != 1 ) {
-        std::cout << "Input file must be mono: " << from_path << std::endl;
-        return false;
-    }
-
-    auto && breakpoints = get_breakpoints( from, win_ms );
+    auto from = require_channels( make_input_handle( from_path ), 1 );
+    auto && breakpoints = from ? get_breakpoints( *from, win_ms ) : std::nullopt;
     if ( !breakpoints ) {
         std::cout << "Error reading input file: " << from_path << std::endl;
         return false;
