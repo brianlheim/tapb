@@ -94,19 +94,36 @@ std::unique_ptr<SndfileHandle> make_input_handle( const std::string & path ) noe
     return handle;
 }
 
+std::unique_ptr<SndfileHandle> require_channels( std::unique_ptr<SndfileHandle> handle,
+                                                 int chans ) noexcept {
+    if ( !handle ) {
+        return {};
+    }
+
+    if ( handle->channels() != chans ) {
+        std::cout << "Input file must have " << chans << " channels (has: " << handle->channels()
+                  << ")" << std::endl;
+        return {};
+    }
+
+    return handle;
+}
+
+constexpr int SF_INPUT_FORMAT = 0;
+constexpr int SF_INPUT_CHANNELS = -1;
 std::unique_ptr<SndfileHandle> make_output_handle( const std::string & path,
                                                    const std::unique_ptr<SndfileHandle> & in_handle,
-                                                   int format = 0,
-                                                   int chans = -1 ) noexcept {
+                                                   int format = SF_INPUT_FORMAT,
+                                                   int chans = SF_INPUT_CHANNELS ) noexcept {
     if ( !in_handle ) {
         return {};
     }
 
-    if ( format == 0 ) {
+    if ( format == SF_INPUT_FORMAT ) {
         format = in_handle->format();
     }
 
-    if ( chans == -1 ) {
+    if ( chans == SF_INPUT_CHANNELS ) {
         chans = in_handle->channels();
     }
 
