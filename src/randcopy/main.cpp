@@ -62,33 +62,10 @@ bool do_copy( const std::string & from_path,
               const std::string & to_path2,
               const size_t bufsize,
               const size_t randblock ) {
-    SndfileHandle from{ from_path, SFM_READ };
-    if ( from.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open read file: " << from_path << std::endl;
-        return false;
-    }
-
-    SndfileHandle to1{ to_path1, SFM_WRITE, SF_FORMAT_WAV | SF_FORMAT_FLOAT, from.channels(),
-                       from.samplerate() };
-    if ( to1.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open write file: " << to_path1 << " (" << to1.strError() << ")"
-                  << std::endl;
-        return false;
-    }
-
-    SndfileHandle to2{ to_path2, SFM_WRITE, SF_FORMAT_WAV | SF_FORMAT_FLOAT, from.channels(),
-                       from.samplerate() };
-    if ( to2.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open write file: " << to_path2 << " (" << to2.strError() << ")"
-                  << std::endl;
-        return false;
-    }
-
-#ifndef NDEBUG
-    std::cout << from << "\n" << to1 << "\n" << to2;
-#endif
-
-    return do_copy_impl( from, to1, to2, bufsize, randblock );
+    auto from = make_input_handle( from_path );
+    auto to1 = make_output_handle( to_path1, from, SF_FORMAT_WAV | SF_FORMAT_FLOAT );
+    auto to2 = make_output_handle( to_path2, from, SF_FORMAT_WAV | SF_FORMAT_FLOAT );
+    return from && to1 && to2 ? do_copy_impl( *from, *to1, *to2, bufsize, randblock ) : false;
 }
 
 int main( int argc, char ** argv ) {
