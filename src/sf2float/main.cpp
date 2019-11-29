@@ -86,7 +86,7 @@ int main( int argc, char ** argv ) {
         .positional( "output", "Output file" )
         .parse( argc, argv );
 
-    return checked_invoke(
+    return checked_invoke_in_out(
         opts, [bufsize, repeats]( const std::string & input, const std::string & output ) {
             return do_copy( input, output, bufsize, repeats );
         } );

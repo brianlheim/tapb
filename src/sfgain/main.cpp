@@ -13,7 +13,7 @@ int main( int argc, char ** argv ) {
         .parse( argc, argv );
 
     // TODO function names
-    return checked_invoke(
+    return checked_invoke_in_out(
         opts, [bufsize, amp_scale]( const std::string & input, const std::string & output ) {
             return fwd_copy( scale_copy, input, output, amp_scale, bufsize );
         } );

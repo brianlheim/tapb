@@ -1,14 +1,10 @@
-#include <iostream>
 #include <string>
 #include <vector>
 
 #include "breakpoint/breakpoint.hpp"
+#include "util/checked_invoke.hpp"
 #include "util/pan_utils.hpp"
-#include "util/simple_options.hpp"
-#include "util/sndfile_utils.hpp"
 #include "util/stereo_envelope_generator.hpp"
-
-#include "sndfile.hh"
 
 static void pan_multiply( std::vector<float> & out, const std::span<float> & in, sf_count_t read ) {
     while ( read-- != 0 ) {
@@ -103,26 +99,5 @@ int main( int argc, char ** argv ) {
         .positional( "breakpoints", "Breakpoint file" )
         .parse( argc, argv );
 
-    if ( opts.has( "help" ) ) {
-        std::cout << opts;
-        return 0;
-    }
-
-    if ( opts.has( "input" ) && opts.has( "output" ) && opts.has( "breakpoints" ) ) {
-        auto && input = opts["input"].as<std::string>();
-        auto && output = opts["output"].as<std::string>();
-        auto && breakpoints = opts["breakpoints"].as<std::string>();
-
-        if ( fwd_pan_copy( input, output, breakpoints ) == SndfileErr::Success ) {
-            return 0;
-        } else {
-            std::cout << "Operation failed." << std::endl;
-            return 1;
-        }
-    } else {
-        std::cout << opts;
-        return 1;
-    }
-
-    return 0;
+    return checked_invoke_in_out_bkpts( opts, &fwd_pan_copy );
 }

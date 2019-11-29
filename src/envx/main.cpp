@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "util/checked_invoke.hpp"
 #include "breakpoint/breakpoint.hpp"
+#include "util/checked_invoke.hpp"
 
 std::optional<std::vector<breakpoint::point>> get_breakpoints( SndfileHandle & from,
                                                                unsigned int win_ms ) {
@@ -71,7 +71,8 @@ int main( int argc, char ** argv ) {
                        simple_options::defaulted_value( &win_ms, 15 ) )
         .parse( argc, argv );
 
-    return checked_invoke( opts, [win_ms]( const std::string & input, const std::string & output ) {
-        return extract_breakpoints( input, output, win_ms );
-    } );
+    return checked_invoke_in_out(
+        opts, [win_ms]( const std::string & input, const std::string & output ) {
+            return extract_breakpoints( input, output, win_ms );
+        } );
 }
