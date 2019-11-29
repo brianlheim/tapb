@@ -59,8 +59,8 @@ static bool fwd_pan_copy( const std::string & from_path,
                           const std::string & to_path,
                           const std::string & breakpoints_path,
                           bool do_normalize ) {
-    auto from = make_input_handle(from_path);
-    auto to = make_output_handle(to_path, from);
+    auto from = make_input_handle( from_path );
+    auto to = make_output_handle( to_path, from );
     if ( !from || !to ) {
         return false;
     }
@@ -73,7 +73,7 @@ static bool fwd_pan_copy( const std::string & from_path,
     } else if ( auto * pvals = std::get_if<std::vector<breakpoint::point>>( &breakpoints ) ) {
         if ( do_normalize )
             normalize( *pvals );
-        return pan_copy( from, to, *pvals );
+        return pan_copy( *from, *to, *pvals );
     } else {
         std::cout << "Unknown error while parsing breakpoints" << std::endl;
         return false;
