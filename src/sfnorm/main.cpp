@@ -8,40 +8,27 @@
 bool get_peak_impl( SndfileHandle & handle, double & peak ) {
     if ( handle.command( SFC_GET_SIGNAL_MAX, &peak, sizeof( peak ) ) ) {
         return true;
-    } else {
-
-#ifndef NDEBUG
-        std::cout << "Calculating normalized peak" << std::endl;
-#endif
-
-        int result = handle.command( SFC_CALC_NORM_SIGNAL_MAX, &peak, sizeof( peak ) );
-        if ( result != 0 ) {
-            std::cout << "Could not calc peak (return code=" << result << ")" << std::endl;
-            return false;
-        } else {
-            return true;
-        }
     }
-}
 
-static void warn_no_scale( Amplitude peak ) {
-    std::cout << "Warning: new peak of " << peak << " requested, but no scaling will take place."
-              << std::endl;
-}
-
-static bool get_peak( const std::string & input, double & peak ) noexcept {
-    auto handle = make_input_handle( input );
-    return handle ? get_peak_impl( *handle, peak ) : false;
+    int result = handle.command( SFC_CALC_NORM_SIGNAL_MAX, &peak, sizeof( peak ) );
+    if ( result != 0 ) {
+        std::cout << "Could not calc peak (return code=" << result << ")" << std::endl;
+        return false;
+    } else {
+        return true;
+    }
 }
 
 static bool print_peak( const std::string & input ) noexcept {
     double peak;
-    auto ok = get_peak( input, peak );
-    if ( ok ) {
-        std::cout << amp_to_db( peak ) << std::endl;
-    }
 
-    return ok;
+    auto handle = make_input_handle( input );
+    if ( handle && get_peak_impl( *handle, peak ) ) {
+        std::cout << amp_to_db( peak ) << std::endl;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 static bool normalize( const std::string & input,
@@ -65,7 +52,8 @@ static bool normalize( const std::string & input,
     }
 
     if ( peak == level_amp ) {
-        warn_no_scale( peak );
+        std::cout << "Warning: new peak of " << peak
+                  << " requested, but no scaling will take place." << std::endl;
     }
 
     auto out_handle = make_output_handle( output, in_handle );
