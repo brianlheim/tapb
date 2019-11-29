@@ -5,8 +5,7 @@
 
 #include "wrapsndfile.hpp"
 
-#include "util/simple_options.hpp"
-#include "util/sndfile_utils.hpp"
+#include "util/checked_invoke.hpp"
 
 using namespace std::string_literals;
 
@@ -22,11 +21,17 @@ std::string try_get_value_property( WrapSndfile::sndfile & sf,
     }
 }
 
-void print_properties( const std::filesystem::path & path, WrapSndfile::sndfile & sf ) {
+static SndfileErr print_properties( const std::string & path ) noexcept {
+    WrapSndfile::sndfile sf( path, SFM_READ );
+    if ( !sf ) {
+        std::cout << "Couldn't open file: " << path;
+        return SndfileErr::CouldNotOpen;
+    }
+
     using std::cout, std::endl;
     const std::string divider( 60, '-' );
 
-    cout << "Filename:        " << path.filename() << endl;
+    cout << "Filename:        " << path << endl;
     cout << divider << endl;
     cout << "Format:          " << WrapSndfile::formatTypeName( sf.format().type ) << endl;
     cout << "Subtype:         " << WrapSndfile::formatSubtypeName( sf.format().subtype ) << endl;
@@ -54,6 +59,8 @@ void print_properties( const std::filesystem::path & path, WrapSndfile::sndfile 
             cout << field << ": " << s << endl;
         }
     }
+
+    return SndfileErr::Success;
 }
 
 int main( int argc, char ** argv ) {
@@ -62,23 +69,5 @@ int main( int argc, char ** argv ) {
         .positional( "input", "Input file" )
         .parse( argc, argv );
 
-    if ( opts.has( "help" ) ) {
-        std::cout << opts;
-        return 0;
-    }
-
-    if ( opts.has( "input" ) ) {
-        auto & path = opts["input"].as<std::string>();
-        WrapSndfile::sndfile sf( path, SFM_READ );
-        if ( sf ) {
-            print_properties( path, sf );
-        } else {
-            std::cout << "Couldn't open file" << std::endl;
-        }
-    } else {
-        std::cout << opts;
-        return 1;
-    }
-
-    return 0;
+    return checked_invoke( opts, std::array{ "input" }, &print_properties );
 }

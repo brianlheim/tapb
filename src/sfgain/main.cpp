@@ -1,5 +1,7 @@
 #include "util/checked_invoke.hpp"
 
+#include <functional>
+
 int main( int argc, char ** argv ) {
     Amplitude amp_scale;
     constexpr size_t bufsize = 1024;
@@ -12,9 +14,8 @@ int main( int argc, char ** argv ) {
         .positional( "output", "Output file" )
         .parse( argc, argv );
 
-    // TODO function names
-    return checked_invoke_in_out(
-        opts, [bufsize, amp_scale]( const std::string & input, const std::string & output ) {
-            return fwd_copy( scale_copy, input, output, amp_scale, bufsize );
-        } );
+    using namespace std::placeholders;
+    return checked_invoke_in_out( opts, [amp_scale, bufsize]( auto & input, auto & output ) {
+        return fwd_copy( scale_copy, input, output, amp_scale, bufsize );
+    } );
 }

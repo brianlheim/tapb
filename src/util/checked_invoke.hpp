@@ -5,9 +5,9 @@
 
 #include <array>
 #include <iostream>
+#include <tuple>
 
-namespace detail {
-
+// Expected signature of lambda: SndfileErr(std::string x N)
 template <typename F, size_t N>
 [[nodiscard]] static int checked_invoke( simple_options::options & opts,
                                          const std::array<const char *, N> & arg_names,
@@ -36,18 +36,15 @@ template <typename F, size_t N>
     }
 }
 
-} // namespace detail
-
 template <typename F>
 [[nodiscard]] static int checked_invoke_in_out( simple_options::options & opts,
                                                 F && lambda ) noexcept {
-    return detail::checked_invoke( opts, std::array{ "input", "output" },
-                                   std::forward<F>( lambda ) );
+    return checked_invoke( opts, std::array{ "input", "output" }, std::forward<F>( lambda ) );
 }
 
 template <typename F>
 [[nodiscard]] static int checked_invoke_in_out_bkpts( simple_options::options & opts,
                                                       F && lambda ) noexcept {
-    return detail::checked_invoke( opts, std::array{ "input", "output", "breakpoints" },
-                                   std::forward<F>( lambda ) );
+    return checked_invoke( opts, std::array{ "input", "output", "breakpoints" },
+                           std::forward<F>( lambda ) );
 }

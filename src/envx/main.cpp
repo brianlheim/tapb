@@ -71,8 +71,6 @@ int main( int argc, char ** argv ) {
                        simple_options::defaulted_value( &win_ms, 15 ) )
         .parse( argc, argv );
 
-    return checked_invoke_in_out(
-        opts, [win_ms]( const std::string & input, const std::string & output ) {
-            return extract_breakpoints( input, output, win_ms );
-        } );
+    using namespace std::placeholders;
+    return checked_invoke_in_out( opts, std::bind( extract_breakpoints, _1, _2, win_ms ) );
 }
