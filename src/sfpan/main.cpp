@@ -62,20 +62,13 @@ bool pan_copy( SndfileHandle & from,
 bool fwd_pan_copy( const std::string & from_path,
                    const std::string & to_path,
                    const std::string & breakpoints_path ) {
-    SndfileHandle from{ from_path, SFM_READ };
-    if ( from.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open read file: " << from_path << std::endl;
+    auto from = require_channels( make_input_handle( from_path ), 1 );
+    if ( !from ) {
         return false;
     }
 
-    if ( from.channels() != 1 ) {
-        std::cout << "Input file must be mono: " << from_path << std::endl;
-        return false;
-    }
-
-    SndfileHandle to{ to_path, SFM_WRITE, from.format(), 2, from.samplerate() };
-    if ( to.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open write file: " << to_path << std::endl;
+    auto to = make_output_handle( to_path, from, SF_INPUT_FORMAT, 2 );
+    if ( !to ) {
         return false;
     }
 
@@ -85,7 +78,7 @@ bool fwd_pan_copy( const std::string & from_path,
                   << std::endl;
         return false;
     } else if ( auto * pvals = std::get_if<std::vector<breakpoint::point>>( &breakpoints ) ) {
-        return pan_copy( from, to, *pvals );
+        return pan_copy( *from, *to, *pvals );
     } else {
         std::cout << "Unknown error while parsing breakpoints" << std::endl;
         return false;
