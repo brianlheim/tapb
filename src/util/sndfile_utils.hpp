@@ -81,19 +81,6 @@ std::unique_ptr<SndfileHandle> make_output_handle( const std::string & path,
     return out_handle;
 }
 
-// Tries to open an input and output file, then forwards the resulting handles and other arguments
-// to the given function. `F`'s type should be a callable `Ret ()( SndfileHandle&,
-// SndfileHandle&, Ts... )`
-template <typename F, typename... Ts>
-bool fwd_copy( F && func,
-               const std::string & from_path,
-               const std::string & to_path,
-               Ts &&... ts ) {
-    auto from = make_input_handle( from_path );
-    auto to = make_output_handle( to_path, from );
-    return from && to ? func( *from, *to, std::forward<Ts &&>( ts )... ) : false;
-}
-
 bool scale_copy( SndfileHandle & from,
                  SndfileHandle & to,
                  const Amplitude amp_scale,
