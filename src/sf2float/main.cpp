@@ -54,24 +54,9 @@ bool do_copy( const std::string & from_path,
               const std::string & to_path,
               const size_t bufsize,
               const size_t repeats ) {
-    SndfileHandle from{ from_path, SFM_READ };
-    if ( from.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open read file: " << from_path << std::endl;
-        return false;
-    }
-
-    SndfileHandle to{ to_path, SFM_WRITE, SF_FORMAT_WAV | SF_FORMAT_FLOAT, from.channels(),
-                      from.samplerate() };
-    if ( to.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open write file: " << to_path << std::endl;
-        return false;
-    }
-
-#ifndef NDEBUG
-    std::cout << from << "\n" << to << "\n";
-#endif
-
-    return do_copy_repeated( from, to, bufsize, repeats );
+    auto from = make_input_handle( from_path );
+    auto to = make_output_handle( to_path, from, SF_FORMAT_WAV | SF_FORMAT_FLOAT );
+    return from && to ? do_copy_repeated( *from, *to, bufsize, repeats ) : false;
 }
 
 int main( int argc, char ** argv ) {
