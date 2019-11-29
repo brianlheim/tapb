@@ -30,13 +30,8 @@ static void warn_no_scale( Amplitude peak ) {
 }
 
 static bool get_peak( const std::string & input, double & peak ) noexcept {
-    SndfileHandle in_handle{ input, SFM_READ };
-    if ( in_handle.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open read file: " << input << std::endl;
-        return false;
-    }
-
-    return get_peak_impl( in_handle, peak );
+    auto handle = make_input_handle( input );
+    return handle ? get_peak_impl( *handle, peak ) : false;
 }
 
 static bool print_peak( const std::string & input ) noexcept {
@@ -52,20 +47,19 @@ static bool print_peak( const std::string & input ) noexcept {
 static bool normalize( const std::string & input,
                        const std::string & output,
                        double level_amp ) noexcept {
-    SndfileHandle in_handle{ input, SFM_READ };
-    if ( in_handle.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open read file: " << input << std::endl;
+    auto in_handle = make_input_handle( input );
+    if ( !in_handle ) {
         return false;
     }
 
     double peak;
-    if ( !get_peak_impl( in_handle, peak ) ) {
+    if ( !get_peak_impl( *in_handle, peak ) ) {
         return false;
     }
 
     const auto scale = level_amp / peak;
 
-    if ( in_handle.seek( 0, SEEK_SET ) == -1 ) {
+    if ( in_handle->seek( 0, SEEK_SET ) == -1 ) {
         std::cout << "Could not seek file: " << input << std::endl;
         return false;
     }
@@ -74,14 +68,8 @@ static bool normalize( const std::string & input,
         warn_no_scale( peak );
     }
 
-    SndfileHandle out_handle{ output, SFM_WRITE, in_handle.format(), in_handle.channels(),
-                              in_handle.samplerate() };
-    if ( out_handle.error() != SF_ERR_NO_ERROR ) {
-        std::cout << "Could not open write file: " << output << std::endl;
-        return false;
-    }
-
-    return scale_copy( in_handle, out_handle, scale );
+    auto out_handle = make_output_handle( output, in_handle );
+    return out_handle ? scale_copy( *in_handle, *out_handle, scale ) : false;
 }
 
 int main( int argc, char ** argv ) {
