@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <memory>
 #include <string>
 
 std::ostream & operator<<( std::ostream & os, const SndfileHandle handle ) {
