@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "util/simple_options.hpp"
+#include "util/checked_invoke.hpp"
 #include "util/sndfile_utils.hpp"
 
 #include "sndfile.hh"
@@ -104,30 +104,7 @@ int main( int argc, char ** argv ) {
         .positional( "output2", "Second output file" )
         .parse( argc, argv );
 
-    if ( opts.has( "help" ) ) {
-        std::cout << opts;
-        return 0;
-    }
-
-    if ( opts.has( "input" ) && opts.has( "output1" ) && opts.has( "output2" ) ) {
-
-#ifndef NDEBUG
-        std::cout << "Reading from " << opts["input"].as<std::string>() << " to {"
-                  << opts["output1"].as<std::string>() << ", " << opts["output2"].as<std::string>()
-                  << "} bufsize=" << bufsize << "; randblock=" << randblock << "\n"
-                  << std::endl;
-#endif
-
-        auto result = do_copy( opts["input"].as<std::string>(), opts["output1"].as<std::string>(),
-                               opts["output2"].as<std::string>(), bufsize, randblock );
-        if ( !result ) {
-            std::cout << "Copy failed." << std::endl;
-            return 2;
-        }
-    } else {
-        std::cout << opts;
-        return 1;
-    }
-
-    return 0;
+    using namespace std::placeholders;
+    return checked_invoke( opts, std::array{ "input", "output1", "output2" },
+                           std::bind( do_copy, _1, _2, _3, bufsize, randblock ) );
 }
