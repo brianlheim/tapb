@@ -2,12 +2,10 @@
 #include <string>
 #include <vector>
 
-#include "util/simple_options.hpp"
+#include "util/checked_invoke.hpp"
 #include "util/sndfile_utils.hpp"
 
-#include "sndfile.hh"
-
-bool get_peak( SndfileHandle & handle, double & peak ) {
+bool get_peak_impl( SndfileHandle & handle, double & peak ) {
     if ( handle.command( SFC_GET_SIGNAL_MAX, &peak, sizeof( peak ) ) ) {
         return true;
     } else {
@@ -26,13 +24,64 @@ bool get_peak( SndfileHandle & handle, double & peak ) {
     }
 }
 
-void print_peak( Amplitude peak ) {
-    std::cout << amp_to_db( peak ) << std::endl;
-}
-
-void warn_no_scale( Amplitude peak ) {
+static void warn_no_scale( Amplitude peak ) {
     std::cout << "Warning: new peak of " << peak << " requested, but no scaling will take place."
               << std::endl;
+}
+
+static bool get_peak( const std::string & input, double & peak ) noexcept {
+    SndfileHandle in_handle{ input, SFM_READ };
+    if ( in_handle.error() != SF_ERR_NO_ERROR ) {
+        std::cout << "Could not open read file: " << input << std::endl;
+        return false;
+    }
+
+    return get_peak_impl( in_handle, peak );
+}
+
+static bool print_peak( const std::string & input ) noexcept {
+    double peak;
+    auto ok = get_peak( input, peak );
+    if ( ok ) {
+        std::cout << amp_to_db( peak ) << std::endl;
+    }
+
+    return ok;
+}
+
+static bool normalize( const std::string & input,
+                       const std::string & output,
+                       double level_amp ) noexcept {
+    SndfileHandle in_handle{ input, SFM_READ };
+    if ( in_handle.error() != SF_ERR_NO_ERROR ) {
+        std::cout << "Could not open read file: " << input << std::endl;
+        return false;
+    }
+
+    double peak;
+    if ( !get_peak_impl( in_handle, peak ) ) {
+        return false;
+    }
+
+    const auto scale = level_amp / peak;
+
+    if ( in_handle.seek( 0, SEEK_SET ) == -1 ) {
+        std::cout << "Could not seek file: " << input << std::endl;
+        return false;
+    }
+
+    if ( peak == level_amp ) {
+        warn_no_scale( peak );
+    }
+
+    SndfileHandle out_handle{ output, SFM_WRITE, in_handle.format(), in_handle.channels(),
+                              in_handle.samplerate() };
+    if ( out_handle.error() != SF_ERR_NO_ERROR ) {
+        std::cout << "Could not open write file: " << output << std::endl;
+        return false;
+    }
+
+    return scale_copy( in_handle, out_handle, scale );
 }
 
 int main( int argc, char ** argv ) {
@@ -46,57 +95,10 @@ int main( int argc, char ** argv ) {
         .positional( "output", "Output file" )
         .parse( argc, argv );
 
-    if ( opts.has( "help" ) ) {
-        std::cout << opts;
-        return 0;
-    }
-
-    if ( opts.has( "input" ) && ( opts.has( "output" ) || opts.has( "peak-only" ) ) ) {
-        // TODO refactor?
-        auto && input = opts["input"].as<std::string>();
-        SndfileHandle in_handle{ input, SFM_READ };
-        if ( in_handle.error() != SF_ERR_NO_ERROR ) {
-            std::cout << "Could not open read file: " << input << std::endl;
-            return 1;
-        }
-
-        double peak;
-        if ( get_peak( in_handle, peak ) != true ) {
-            return 1;
-        }
-        auto level_amp = db_to_amp( level );
-        auto scale = level_amp / peak;
-
-        if ( in_handle.seek( 0, SEEK_SET ) == -1 ) {
-            std::cout << "Could not seek file: " << input << std::endl;
-            return 1;
-        }
-
-        if ( opts.has( "peak-only" ) ) {
-            print_peak( peak );
-            return 0;
-        }
-
-        if ( peak == level_amp ) {
-            warn_no_scale( peak );
-        }
-
-        auto && output = opts["output"].as<std::string>();
-        SndfileHandle out_handle{ output, SFM_WRITE, in_handle.format(), in_handle.channels(),
-                                  in_handle.samplerate() };
-        if ( out_handle.error() != SF_ERR_NO_ERROR ) {
-            std::cout << "Could not open write file: " << output << std::endl;
-            return 1;
-        }
-
-        if ( !scale_copy( in_handle, out_handle, scale ) ) {
-            std::cout << "Copy failed." << std::endl;
-            return 2;
-        }
+    using namespace std::placeholders;
+    if ( opts.has( "peak-only" ) ) {
+        return checked_invoke( opts, std::array{ "input" }, print_peak );
     } else {
-        std::cout << opts;
-        return 1;
+        return checked_invoke_in_out( opts, std::bind( normalize, _1, _2, db_to_amp( level ) ) );
     }
-
-    return 0;
 }
