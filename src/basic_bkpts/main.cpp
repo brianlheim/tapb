@@ -9,7 +9,7 @@ static bool process_breakpoints_file( const std::string & infile ) noexcept {
     auto result = breakpoint::parse_breakpoints( infile );
     auto * err = std::get_if<breakpoint::parse_error>( &result );
     if ( err ) {
-        std::cout << "Error " << to_string( err->code ) << " on line: " << err->line << std::endl;
+        std::cout << "Error " << err->code << " on line: " << err->line << std::endl;
         return false;
     }
 
