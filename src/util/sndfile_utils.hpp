@@ -94,17 +94,24 @@ std::unique_ptr<SndfileHandle> make_input_handle( const std::string & path ) noe
     return handle;
 }
 
-// TODO make more flexible
-std::unique_ptr<SndfileHandle> make_output_handle(
-    const std::string & path,
-    const std::unique_ptr<SndfileHandle>& in_handle ) noexcept {
+std::unique_ptr<SndfileHandle> make_output_handle( const std::string & path,
+                                                   const std::unique_ptr<SndfileHandle> & in_handle,
+                                                   int format = 0,
+                                                   int chans = -1 ) noexcept {
     if ( !in_handle ) {
         return {};
     }
 
-    auto out_handle
-        = std::make_unique<SndfileHandle>( path, SFM_WRITE, in_handle->format(),
-                                           in_handle->channels(), in_handle->samplerate() );
+    if ( format == 0 ) {
+        format = in_handle->format();
+    }
+
+    if ( chans == -1 ) {
+        chans = in_handle->channels();
+    }
+
+    auto out_handle = std::make_unique<SndfileHandle>( path, SFM_WRITE, format, chans,
+                                                       in_handle->samplerate() );
     if ( out_handle->error() != SF_ERR_NO_ERROR ) {
         std::cout << "Could not open write file: " << path << std::endl;
         return {};
