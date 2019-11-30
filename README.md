@@ -59,4 +59,3 @@ TODO
 
 - use std::filesystem::path instead of std::string
 - lift breakpoint validation to interface?
-- factor envelope generators (CRTP'd?)
