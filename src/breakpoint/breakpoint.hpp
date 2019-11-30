@@ -12,6 +12,8 @@ struct point {
     double value;
 };
 
+using point_list = std::vector<point>;
+
 constexpr bool operator==( point l, point r ) {
     return l.time_secs == r.time_secs && l.value == r.value;
 }
@@ -53,18 +55,18 @@ std::ostream & operator<<( std::ostream & os, parse_error::errc code );
 // - first breakpoint must be at time 0.0
 // - successive times must be increasing
 // - line can be a maximum of 256 characters long
-std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & is );
+std::variant<point_list, parse_error> parse_breakpoints( std::istream & is );
 
 // Helper function -- tries to open file at `path`, if it fails then return {io_error,0}
-std::variant<std::vector<point>, parse_error> parse_breakpoints( const std::string & path );
+std::variant<point_list, parse_error> parse_breakpoints( const std::string & path );
 
 // Writes breakpoints to stream, without any validation.
 // Breakpoints are written one per line. Returns whether or not the operation succeeded.
-bool write_breakpoints( std::ostream & os, const std::vector<point> & points );
+bool write_breakpoints( std::ostream & os, const point_list & points );
 
 // Convenience function -- tries to open file at `path` and write breakpoints, if it fails then
 // return false.
-bool write_breakpoints( const std::string & path, const std::vector<point> & points );
+bool write_breakpoints( const std::string & path, const point_list & points );
 
 template <typename FwdIt> constexpr point max_point( FwdIt begin, FwdIt end ) {
     return *std::max_element(

@@ -13,7 +13,7 @@ static bool process_breakpoints_file( const std::string & infile ) noexcept {
         return false;
     }
 
-    auto & points = *std::get_if<std::vector<breakpoint::point>>( &result );
+    auto & points = *std::get_if<breakpoint::point_list>( &result );
     for ( auto && pt : points ) {
         std::cout << "Point: " << pt.time_secs << " @ " << pt.value << std::endl;
     }

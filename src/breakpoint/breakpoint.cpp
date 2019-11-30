@@ -47,7 +47,7 @@ static constexpr unsigned maxlen = 256u;
 // - first time should be 0.0
 //
 // Returns {error+line num} or {success+0}
-static parse_error validate_breakpoints( const std::vector<point> & points,
+static parse_error validate_breakpoints( const point_list & points,
                                          const std::vector<unsigned> & line_nums,
                                          unsigned last_line ) {
     assert( points.size() == line_nums.size() );
@@ -84,14 +84,14 @@ static inline const char * scan_to_next_token( const char * column ) {
     return column;
 }
 
-std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & is ) {
+std::variant<point_list, parse_error> parse_breakpoints( std::istream & is ) {
     if ( !is )
         return { parse_error{ parse_error::io_error, 0 } };
     if ( is.peek() == std::istream::traits_type::eof() )
         return parse_error{ parse_error::unexpected_eof, 1 };
 
     unsigned line_count = 0;
-    std::vector<point> result;
+    point_list result;
     std::vector<unsigned> line_nums;
     while ( true ) {
         // Only successful exit path from this function
@@ -142,18 +142,18 @@ std::variant<std::vector<point>, parse_error> parse_breakpoints( std::istream & 
     }
 }
 
-std::variant<std::vector<point>, parse_error> parse_breakpoints( const std::string & path ) {
+std::variant<point_list, parse_error> parse_breakpoints( const std::string & path ) {
     std::ifstream ifs{ path };
     return ifs.is_open() ? parse_breakpoints( ifs ) : parse_error{ parse_error::io_error, 0 };
 }
 
-bool write_breakpoints( std::ostream & os, const std::vector<point> & points ) {
+bool write_breakpoints( std::ostream & os, const point_list & points ) {
     for ( auto & point : points )
         os << point.time_secs << '\t' << point.value << '\n';
     return bool( os );
 }
 
-bool write_breakpoints( const std::string & path, const std::vector<point> & points ) {
+bool write_breakpoints( const std::string & path, const point_list & points ) {
     std::ofstream ofs{ path };
     return ofs.is_open() && write_breakpoints( ofs, points );
 }

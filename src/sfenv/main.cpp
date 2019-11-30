@@ -18,7 +18,7 @@ static void multichan_multiply( std::span<float> & out,
 
 static bool apply_breakpoints_impl( SndfileHandle & from,
                                     SndfileHandle & to,
-                                    const std::vector<breakpoint::point> & points,
+                                    const breakpoint::point_list & points,
                                     const size_t bufsize = 1024 ) {
     basic_envelope_generator gen( points, from.samplerate(), bufsize );
     return transform_copy( from, to, [&gen, &from]( auto span ) {
@@ -26,7 +26,7 @@ static bool apply_breakpoints_impl( SndfileHandle & from,
     } );
 }
 
-static void normalize( std::vector<breakpoint::point> & points ) {
+static void normalize( breakpoint::point_list & points ) {
     auto max = max_point( points.begin(), points.end() );
     for ( auto x : points )
         x.value /= max.value;
@@ -47,7 +47,7 @@ static bool apply_breakpoints( const std::string & from_path,
         std::cout << "Error parsing breakpoint file '" << breakpoints_path << "': " << *perr
                   << std::endl;
         return false;
-    } else if ( auto * pvals = std::get_if<std::vector<breakpoint::point>>( &breakpoints ) ) {
+    } else if ( auto * pvals = std::get_if<breakpoint::point_list>( &breakpoints ) ) {
         if ( do_normalize )
             normalize( *pvals );
         return apply_breakpoints_impl( *from, *to, *pvals );

@@ -14,7 +14,7 @@ static void pan_multiply( std::vector<float> & out, const std::span<float> & in,
     }
 }
 
-static bool check_pan_range( const std::vector<breakpoint::point> & points,
+static bool check_pan_range( const breakpoint::point_list & points,
                              double min,
                              double max ) {
     return std::all_of( begin( points ), end( points ),
@@ -23,7 +23,7 @@ static bool check_pan_range( const std::vector<breakpoint::point> & points,
 
 bool pan_copy( SndfileHandle & from,
                SndfileHandle & to,
-               const std::vector<breakpoint::point> & points,
+               const breakpoint::point_list & points,
                const size_t bufsize = 1024 ) {
     if ( !check_pan_range( points, -1.0, 1.0 ) ) {
         std::cout << "Breakpoints are outside the -1 to +1 range" << std::endl;
@@ -75,7 +75,7 @@ bool fwd_pan_copy( const std::string & from_path,
         std::cout << "Error parsing breakpoint file '" << breakpoints_path << "': " << *perr
                   << std::endl;
         return false;
-    } else if ( auto * pvals = std::get_if<std::vector<breakpoint::point>>( &breakpoints ) ) {
+    } else if ( auto * pvals = std::get_if<breakpoint::point_list>( &breakpoints ) ) {
         return pan_copy( *from, *to, *pvals );
     } else {
         std::cout << "Unknown error while parsing breakpoints" << std::endl;

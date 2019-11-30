@@ -14,7 +14,7 @@ public:
     // Points: breakpoint envelope. Assumed to start from time 0. No assumption made about last
     // time. Sample rate: used for conversion from seconds to samples. Bufsize: max number of frames
     // that will be requested at one time.
-    basic_envelope_generator( const std::vector<breakpoint::point> & points,
+    basic_envelope_generator( const breakpoint::point_list & points,
                               const uint32_t sample_rate,
                               const size_t bufsize ):
         _buffer( bufsize ),
@@ -50,7 +50,7 @@ private:
     };
     using Points = std::vector<sample_point>;
 
-    Points make_points( const std::vector<breakpoint::point> & points,
+    Points make_points( const breakpoint::point_list & points,
                         const uint32_t sample_rate ) const noexcept {
         Points result;
         result.reserve( points.size() );

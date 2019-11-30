@@ -8,14 +8,14 @@
 #include "util/checked_invoke.hpp"
 #include "util/sndfile_utils.hpp"
 
-std::optional<std::vector<breakpoint::point>> get_breakpoints( SndfileHandle & from,
+std::optional<breakpoint::point_list> get_breakpoints( SndfileHandle & from,
                                                                unsigned int win_ms ) {
     sf_count_t read = 0;
     sf_count_t total_read = 0;
     const auto sample_rate = from.samplerate(); // samp / s
     const unsigned int samples_per_window = sample_rate * win_ms / 1000u;
     std::vector<float> floats( samples_per_window );
-    std::vector<breakpoint::point> result;
+    breakpoint::point_list result;
 
     while ( ( read = from.readf( floats.data(), floats.size() ) ) ) {
         std::transform( begin( floats ), begin( floats ) + read, begin( floats ), &std::fabsf );
