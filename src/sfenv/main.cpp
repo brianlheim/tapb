@@ -7,7 +7,7 @@
 #include "util/pan_utils.hpp"
 #include "util/sndfile_utils.hpp"
 
-static void multichan_multiply( std::vector<float> & out,
+static void multichan_multiply( std::span<float> & out,
                                 const std::span<float> & in,
                                 int num_channels ) {
     sf_count_t i = 0;
@@ -20,33 +20,10 @@ static bool pan_copy( SndfileHandle & from,
                       SndfileHandle & to,
                       const std::vector<breakpoint::point> & points,
                       const size_t bufsize = 1024 ) {
-    // allocate enough for all channels
-    std::vector<float> floats( bufsize * from.channels() );
-
-    sf_count_t read = 0;
-    sf_count_t total_written = 0;
-    auto sample_rate = from.samplerate();
-    basic_envelope_generator gen( points, sample_rate, bufsize );
-
-    while ( ( read = from.readf( floats.data(), bufsize ) ) ) {
-        multichan_multiply( floats, gen.next_frames( read ), from.channels() );
-        auto written = to.writef( floats.data(), read );
-        if ( written < read ) {
-            std::cout << "Error while writing (" << written << " written): " << to.strError()
-                      << std::endl;
-            return false;
-        }
-
-        total_written += written;
-    }
-
-    if ( total_written != from.frames() ) {
-        std::cout << "Could not read entire file: " << from.strError() << std::endl;
-        std::cout << "Read " << from.frames() << " | Wrote " << to.frames() << std::endl;
-        return false;
-    }
-
-    return true;
+    basic_envelope_generator gen( points, from.samplerate(), bufsize );
+    return transform_copy( from, to, [&gen, &from]( auto span ) {
+        multichan_multiply( span, gen.next_frames( span.size() ), from.channels() );
+    } );
 }
 
 static void normalize( std::vector<breakpoint::point> & points ) {
