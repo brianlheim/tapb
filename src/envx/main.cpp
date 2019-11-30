@@ -8,8 +8,7 @@
 #include "util/checked_invoke.hpp"
 #include "util/sndfile_utils.hpp"
 
-std::optional<breakpoint::point_list> get_breakpoints( SndfileHandle & from,
-                                                               unsigned int win_ms ) {
+std::optional<breakpoint::point_list> get_breakpoints( SndfileHandle & from, unsigned int win_ms ) {
     sf_count_t read = 0;
     sf_count_t total_read = 0;
     const auto sample_rate = from.samplerate(); // samp / s

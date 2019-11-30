@@ -14,9 +14,7 @@ static void pan_multiply( std::vector<float> & out, const std::span<float> & in,
     }
 }
 
-static bool check_pan_range( const breakpoint::point_list & points,
-                             double min,
-                             double max ) {
+static bool check_pan_range( const breakpoint::point_list & points, double min, double max ) {
     return std::all_of( begin( points ), end( points ),
                         [min, max]( auto x ) { return x.value >= min && x.value <= max; } );
 }
