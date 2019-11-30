@@ -6,40 +6,13 @@
 #include "util/simple_options.hpp"
 #include "util/sndfile_utils.hpp"
 
-bool do_copy_impl( SndfileHandle & from,
-                   SndfileHandle & to,
-                   const size_t bufsize,
-                   std::vector<float> & floats ) {
-    sf_count_t read = 0;
-    sf_count_t total_written = 0;
-    while ( ( read = from.readf( floats.data(), bufsize ) ) ) {
-        auto written = to.writef( floats.data(), read );
-        if ( written < read ) {
-            std::cout << "Error while writing (" << written << " written): " << to.strError()
-                      << std::endl;
-            return false;
-        }
-
-        total_written += written;
-    }
-
-    if ( total_written != from.frames() ) {
-        std::cout << "Could not read entire file: " << from.strError() << std::endl;
-        std::cout << "Read " << from.frames() << " | Wrote " << to.frames() << std::endl;
-        return false;
-    }
-
-    return true;
-}
-
 bool do_copy_repeated( SndfileHandle & from,
                        SndfileHandle & to,
                        const size_t bufsize,
                        const size_t repeats ) {
-    std::vector<float> floats( from.channels() * bufsize );
-
     for ( auto i = 0ul; i < repeats; ++i ) {
-        auto const result = do_copy_impl( from, to, bufsize, floats );
+        auto result = transform_copy(
+            from, to, []( auto ) {}, bufsize );
         if ( !result ) {
             return false;
         }
