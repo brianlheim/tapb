@@ -38,7 +38,7 @@ struct parse_error {
     unsigned line; // starting from 1; 0 indicates nothing could be parsed at all
 };
 
-const char * to_string( parse_error::errc code );
+const char * to_string( parse_error::errc code ) noexcept;
 
 std::ostream & operator<<( std::ostream & os, const parse_error & error );
 std::ostream & operator<<( std::ostream & os, parse_error::errc code );
@@ -58,7 +58,7 @@ std::ostream & operator<<( std::ostream & os, parse_error::errc code );
 std::variant<point_list, parse_error> parse_breakpoints( std::istream & is );
 
 // Helper function -- tries to open file at `path`, if it fails then return {io_error,0}
-std::variant<point_list, parse_error> parse_breakpoints( const std::string & path );
+std::variant<point_list, parse_error> parse_breakpoints( const std::string & path ) noexcept;
 
 // Writes breakpoints to stream, without any validation.
 // Breakpoints are written one per line. Returns whether or not the operation succeeded.
@@ -66,9 +66,9 @@ bool write_breakpoints( std::ostream & os, const point_list & points );
 
 // Convenience function -- tries to open file at `path` and write breakpoints, if it fails then
 // return false.
-bool write_breakpoints( const std::string & path, const point_list & points );
+bool write_breakpoints( const std::string & path, const point_list & points ) noexcept;
 
-template <typename FwdIt> constexpr point max_point( FwdIt begin, FwdIt end ) {
+template <typename FwdIt> constexpr point max_point( FwdIt begin, FwdIt end ) noexcept {
     return *std::max_element(
         begin, end, []( const point & l, const point & r ) { return l.value < r.value; } );
 }

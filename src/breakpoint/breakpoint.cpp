@@ -7,7 +7,7 @@
 
 namespace breakpoint {
 
-const char * to_string( parse_error::errc code ) {
+const char * to_string( parse_error::errc code ) noexcept {
     switch ( code ) {
     case parse_error::success:
         return "Success";
@@ -68,7 +68,7 @@ static parse_error validate_breakpoints( const point_list & points,
 
 // Returns whether or not parsing was successful
 // If successful, column is set to past end of double, out is set to double value
-static bool try_parse_double( const char *& column, double & out ) {
+static bool try_parse_double( const char *& column, double & out ) noexcept {
     char * str_end;
     out = std::strtod( column, &str_end );
     if ( str_end == column || out == HUGE_VAL )
@@ -78,7 +78,7 @@ static bool try_parse_double( const char *& column, double & out ) {
 }
 
 // Eat up spaces and tabs
-static inline const char * scan_to_next_token( const char * column ) {
+static inline const char * scan_to_next_token( const char * column ) noexcept {
     while ( *column != '\0' && ( *column == ' ' || *column == '\t' ) )
         column++;
     return column;
@@ -142,7 +142,7 @@ std::variant<point_list, parse_error> parse_breakpoints( std::istream & is ) {
     }
 }
 
-std::variant<point_list, parse_error> parse_breakpoints( const std::string & path ) {
+std::variant<point_list, parse_error> parse_breakpoints( const std::string & path ) noexcept {
     std::ifstream ifs{ path };
     return ifs.is_open() ? parse_breakpoints( ifs ) : parse_error{ parse_error::io_error, 0 };
 }
@@ -153,7 +153,7 @@ bool write_breakpoints( std::ostream & os, const point_list & points ) {
     return bool( os );
 }
 
-bool write_breakpoints( const std::string & path, const point_list & points ) {
+bool write_breakpoints( const std::string & path, const point_list & points ) noexcept {
     std::ofstream ofs{ path };
     return ofs.is_open() && write_breakpoints( ofs, points );
 }
