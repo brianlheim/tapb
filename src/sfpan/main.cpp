@@ -32,11 +32,9 @@ bool pan_copy( SndfileHandle & from,
 
     // allocate enough for stereo
     std::vector<float> floats( bufsize * 2 );
-
     sf_count_t read = 0;
     sf_count_t total_written = 0;
-    auto sample_rate = from.samplerate();
-    stereo_envelope_generator gen( points, sample_rate, bufsize );
+    stereo_envelope_generator gen( points, from.samplerate(), bufsize );
 
     while ( ( read = from.readf( floats.data(), bufsize ) ) ) {
         pan_multiply( floats, gen.next_frames( read ), read );
