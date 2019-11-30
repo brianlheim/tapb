@@ -16,10 +16,10 @@ static void multichan_multiply( std::span<float> & out,
             out[i] *= amp;
 }
 
-static bool pan_copy( SndfileHandle & from,
-                      SndfileHandle & to,
-                      const std::vector<breakpoint::point> & points,
-                      const size_t bufsize = 1024 ) {
+static bool apply_breakpoints_impl( SndfileHandle & from,
+                                    SndfileHandle & to,
+                                    const std::vector<breakpoint::point> & points,
+                                    const size_t bufsize = 1024 ) {
     basic_envelope_generator gen( points, from.samplerate(), bufsize );
     return transform_copy( from, to, [&gen, &from]( auto span ) {
         multichan_multiply( span, gen.next_frames( span.size() ), from.channels() );
@@ -32,10 +32,10 @@ static void normalize( std::vector<breakpoint::point> & points ) {
         x.value /= max.value;
 }
 
-static bool fwd_pan_copy( const std::string & from_path,
-                          const std::string & to_path,
-                          const std::string & breakpoints_path,
-                          bool do_normalize ) {
+static bool apply_breakpoints( const std::string & from_path,
+                               const std::string & to_path,
+                               const std::string & breakpoints_path,
+                               bool do_normalize ) {
     auto from = make_input_handle( from_path );
     auto to = make_output_handle( to_path, from );
     if ( !from || !to ) {
@@ -50,7 +50,7 @@ static bool fwd_pan_copy( const std::string & from_path,
     } else if ( auto * pvals = std::get_if<std::vector<breakpoint::point>>( &breakpoints ) ) {
         if ( do_normalize )
             normalize( *pvals );
-        return pan_copy( *from, *to, *pvals );
+        return apply_breakpoints_impl( *from, *to, *pvals );
     } else {
         std::cout << "Unknown error while parsing breakpoints" << std::endl;
         return false;
@@ -69,5 +69,5 @@ int main( int argc, char ** argv ) {
 
     using namespace std::placeholders;
     return checked_invoke_in_out_bkpts(
-        opts, std::bind( fwd_pan_copy, _1, _2, _3, opts.has( "normalize" ) ) );
+        opts, std::bind( apply_breakpoints, _1, _2, _3, opts.has( "normalize" ) ) );
 }
