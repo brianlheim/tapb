@@ -1,6 +1,8 @@
 #include "breakpoint/breakpoint.hpp"
 
+#include <cassert>
 #include <charconv>
+#include <cmath>
 #include <fstream>
 #include <istream>
 #include <ostream>

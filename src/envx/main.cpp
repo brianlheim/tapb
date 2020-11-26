@@ -17,7 +17,8 @@ std::optional<breakpoint::point_list> get_breakpoints( SndfileHandle & from, uns
     breakpoint::point_list result;
 
     while ( ( read = from.readf( floats.data(), floats.size() ) ) ) {
-        std::transform( begin( floats ), begin( floats ) + read, begin( floats ), &std::fabsf );
+        std::transform( begin( floats ), begin( floats ) + read, begin( floats ),
+                        static_cast<float ( * )( float )>( &std::fabs ) );
         auto max = *std::max_element( begin( floats ), begin( floats ) + read );
         auto time_secs = double( total_read ) / sample_rate;
         result.push_back( { time_secs, max } );
