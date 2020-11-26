@@ -5,12 +5,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Boost 1.66.0 REQUIRED COMPONENTS program_options)
 
-find_library(vorbis libvorbis.a PATHS ENV PATH)
-find_library(vorbisenc libvorbisenc.a PATHS ENV PATH)
-find_library(vorbisfile libvorbisfile.a PATHS ENV PATH)
-find_library(ogg libogg.a PATHS ENV PATH)
-find_library(flac libflac.a PATHS ENV PATH)
-find_library(sndfile libsndfile.a PATHS ENV PATH)
+find_library(vorbis NAMES vorbis REQUIRED)
+find_library(vorbisenc NAMES vorbisenc REQUIRED)
+find_library(vorbisfile NAMES vorbisfile REQUIRED)
+find_library(ogg NAMES ogg REQUIRED)
+find_library(flac NAMES flac FLAC REQUIRED)
+find_library(sndfile NAMES sndfile REQUIRED)
 
 set(hello_sources src/hello/main.cpp)
 set(basic_sources src/basic/main.cpp)
