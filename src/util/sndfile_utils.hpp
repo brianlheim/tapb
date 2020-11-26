@@ -92,7 +92,7 @@ bool transform_copy( SndfileHandle & from,
     sf_count_t read = 0;
     sf_count_t total_written = 0;
     while ( ( read = from.readf( floats.data(), bufsize ) ) ) {
-        transform_func( std::span<float>{ floats.data(), read * from.channels() } );
+        transform_func( std::span<float>{ floats.data(), size_t( read * from.channels() ) } );
         auto written = to.writef( floats.data(), read );
         if ( written < read ) {
             std::cout << "Error while writing (" << written << " written): " << to.strError()
